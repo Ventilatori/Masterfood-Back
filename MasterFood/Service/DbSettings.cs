@@ -11,5 +11,6 @@ namespace MasterFood.Service
         public string ConnectionString { get; set; }
         public string ShopCollectionName { get; set; }
         public string OrderCollectionName { get; set; }
+        public string UserCollectionName { get; set; }
     }
 }

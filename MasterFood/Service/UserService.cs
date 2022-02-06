@@ -1,17 +1,15 @@
-﻿using System.Net.Mail;
-using System.Net;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using Microsoft.Extensions.Options;
-using System.Security.Cryptography;
 using MongoDB.Driver;
 using MasterFood.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 
 namespace MasterFood.Service
 {
@@ -35,8 +33,10 @@ namespace MasterFood.Service
         };
         string AddImage(IFormFile? image, ImageType img_type);
         bool DeleteImage(string image, IUserService.ImageType img_type);
+        string GenerateToken(User user);
+        (string username, IUserService.AccountType type)? CheckToken(string token);
+        User FindUser(string id);
         /*
-        string GenerisiToken(Korisnik korisnik);
         int PinGenerator();
         void PinUpdate(Korisnik korisnik, int PIN);
         bool ProveriSifru(byte[] sifra, byte[] salt, string zahtev);
@@ -48,16 +48,20 @@ namespace MasterFood.Service
     public class UserService : IUserService
     {
         public IWebHostEnvironment Environment { get; set; }
+        public AppSettings _appSettings { get; set; }
 
         public readonly IMongoCollection<Shop> Shops;
         public readonly IMongoCollection<Order> Orders;
+        public readonly IMongoCollection<User> Users;
 
-        public UserService(IWebHostEnvironment environment, IOptions<DbSettings> dbSettings) {
+        public UserService(IWebHostEnvironment environment, IOptions<DbSettings> dbSettings, IOptions<AppSettings> appsettings) {
             this.Environment = environment;
+            this._appSettings = appsettings.Value;
             MongoClient client = new MongoClient(dbSettings.Value.ConnectionString);
             IMongoDatabase database = client.GetDatabase(dbSettings.Value.DatabaseName);
             this.Shops = database.GetCollection<Shop>(dbSettings.Value.ShopCollectionName);
             this.Orders = database.GetCollection<Order>(dbSettings.Value.OrderCollectionName);
+            this.Users = database.GetCollection<User>(dbSettings.Value.UserCollectionName);
         }
         public string AddImage(IFormFile? image, IUserService.ImageType img_type)
         {
@@ -99,20 +103,57 @@ namespace MasterFood.Service
                 return true;
             }
         }
-        /*
-        public string GenerisiToken(Korisnik korisnik)
+        public string GenerateToken(User user)
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             byte[] key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("id", korisnik.ID.ToString()) }),
+                Subject = new ClaimsIdentity(new[] { new Claim("id", user.ID) }),
                 Expires = DateTime.UtcNow.AddDays(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+        public (string username, IUserService.AccountType type)? CheckToken(string token)
+        {
+            if (!String.IsNullOrEmpty(token))
+            {
+                (string username, IUserService.AccountType type) result;
+
+                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+                byte[] key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.FromMinutes(10)
+                }, out SecurityToken validatedToken);
+
+                JwtSecurityToken jwtToken = (JwtSecurityToken)validatedToken;
+                //int userID = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+                string userID = jwtToken.Claims.First(x => x.Type == "id").Value;
+
+                User user = this.FindUser(userID);
+                result.username = user.UserName;
+                result.type = user.UserType;
+
+                return result;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public User FindUser(string id)
+        {
+            return this.Users.Find(u => u.ID == id).FirstOrDefaultAsync().Result;
+        }
+
+        /*
         public bool ProveriSifru(byte[] sifra, byte[] salt, string zahtev)
         {
             HMACSHA512 hashObj = new HMACSHA512(salt);

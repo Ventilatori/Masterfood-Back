@@ -43,3 +43,7 @@ C:\Users\Andrija\Desktop\Fax\7. semestar\Napredne baze podataka\Projekti\3 proj\
 C:\Users\Andrija\Desktop\Fax\7. semestar\Napredne baze podataka\Projekti\3 proj\NBP3-Back\MasterFood\obj\Debug\net5.0\ref\MasterFood.dll
 C:\Users\Andrija\Desktop\Fax\7. semestar\Napredne baze podataka\Projekti\3 proj\NBP3-Back\MasterFood\obj\Debug\net5.0\MasterFood.pdb
 C:\Users\Andrija\Desktop\Fax\7. semestar\Napredne baze podataka\Projekti\3 proj\NBP3-Back\MasterFood\obj\Debug\net5.0\MasterFood.genruntimeconfig.cache
+C:\Users\Andrija\Desktop\Fax\7. semestar\Napredne baze podataka\Projekti\3 proj\NBP3-Back\MasterFood\bin\Debug\net5.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\Andrija\Desktop\Fax\7. semestar\Napredne baze podataka\Projekti\3 proj\NBP3-Back\MasterFood\bin\Debug\net5.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\Andrija\Desktop\Fax\7. semestar\Napredne baze podataka\Projekti\3 proj\NBP3-Back\MasterFood\bin\Debug\net5.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\Andrija\Desktop\Fax\7. semestar\Napredne baze podataka\Projekti\3 proj\NBP3-Back\MasterFood\bin\Debug\net5.0\System.IdentityModel.Tokens.Jwt.dll

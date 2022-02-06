@@ -17,6 +17,7 @@ namespace MasterFood.Models
         public string Description { get; set; }
         public List<string> Tags { get; set; }
         public string Picture { get; set; }
+        public MongoDBRef Owner { get; set; }
         public List<Item> Items { get; set; }
         public List<MongoDBRef> Orders { get; set; }
     }

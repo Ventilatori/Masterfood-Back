@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MasterFood.Authentication;
 using MasterFood.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,6 +30,7 @@ namespace MasterFood
         {
             services.Configure<DbSettings>(Configuration.GetSection("DbSettings"));
             services.AddScoped<IUserService, UserService>();
+            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -52,6 +54,8 @@ namespace MasterFood
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseMiddleware<JWTMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {

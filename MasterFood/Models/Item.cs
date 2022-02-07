@@ -27,13 +27,15 @@ namespace MasterFood.Models
 
         public List<string> Tags { get; set; }
 
-        public Item(Item old)
+        public Item() { }
+
+        public Item(Item old, int amount)
         {
             this.Name = old.Name;
             this.Description = old.Description;
             this.Picture = old.Picture;
             this.Price = old.Price;
-            this.Amount = 1;
+            this.Amount = amount;
             this.Shop = old.Shop;
             if (old.Tags.Any())
             {

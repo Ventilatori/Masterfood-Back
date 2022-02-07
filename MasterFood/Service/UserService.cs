@@ -10,6 +10,8 @@ using MongoDB.Driver;
 using MasterFood.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Collections.Generic;
+using MongoDB.Bson;
 
 namespace MasterFood.Service
 {
@@ -31,11 +33,17 @@ namespace MasterFood.Service
             Shop,
             Admin
         };
-        string AddImage(IFormFile? image, ImageType img_type);
+        string AddImage(IFormFile? image, ImageType img_type = IUserService.ImageType.Item);
         bool DeleteImage(string image, IUserService.ImageType img_type);
         string GenerateToken(User user);
         (string username, IUserService.AccountType type)? CheckToken(string token);
         User FindUser(string id);
+        List<Shop> GetAllShops(int page_num, int page_size);
+        List<Shop> PopularShops(int page_size);
+        Shop GetShop(string id);
+        void UpdateShop(Shop shop);
+        User GetUser(string id);
+        void StoreShop(Shop shop, User user);
         /*
         int PinGenerator();
         void PinUpdate(Korisnik korisnik, int PIN);
@@ -50,9 +58,9 @@ namespace MasterFood.Service
         public IWebHostEnvironment Environment { get; set; }
         public AppSettings _appSettings { get; set; }
 
-        public readonly IMongoCollection<Shop> Shops;
-        public readonly IMongoCollection<Order> Orders;
-        public readonly IMongoCollection<User> Users;
+        private readonly IMongoCollection<Shop> Shops;
+        private readonly IMongoCollection<Order> Orders;
+        private readonly IMongoCollection<User> Users;
 
         public UserService(IWebHostEnvironment environment, IOptions<DbSettings> dbSettings, IOptions<AppSettings> appsettings) {
             this.Environment = environment;
@@ -63,7 +71,7 @@ namespace MasterFood.Service
             this.Orders = database.GetCollection<Order>(dbSettings.Value.OrderCollectionName);
             this.Users = database.GetCollection<User>(dbSettings.Value.UserCollectionName);
         }
-        public string AddImage(IFormFile? image, IUserService.ImageType img_type)
+        public string AddImage(IFormFile? image, IUserService.ImageType img_type = IUserService.ImageType.Item)
         {
             string folderPath = "Images\\"+ img_type.ToString();
             string uploadsFolder = Path.Combine(Environment.WebRootPath, folderPath);
@@ -152,6 +160,46 @@ namespace MasterFood.Service
         {
             return this.Users.Find(u => u.ID == id).FirstOrDefaultAsync().Result;
         }
+
+        public List<Shop> GetAllShops(int page_num, int page_size)
+        {
+            FilterDefinition<Shop> filter = Builders<Shop>.Filter.Empty;
+            return this.Shops.Find(filter).Skip((page_num-1)*page_size).Limit(page_size).ToList();
+        }
+
+        public List<Shop> PopularShops(int page_size = 5)
+        {
+            FilterDefinition<Shop> filter = Builders<Shop>.Filter.Empty;
+            //SortDefinition<Order> sort = Builders<Order>.Sort.Descending("orderCount");
+            return this.Shops.Find(filter).SortByDescending(p => p.OrderCount).Limit(page_size).ToList();
+        }
+
+        public Shop GetShop(string id)
+        {
+            FilterDefinition<Shop> filter = Builders<Shop>.Filter.Eq("_id", id);
+            return this.Shops.Find(filter).FirstOrDefault();
+        }
+
+        public User GetUser(string id)
+        {
+            FilterDefinition<User> filter = Builders<User>.Filter.Eq("_id", id);
+            return this.Users.Find(filter).FirstOrDefault();
+        }
+
+        public void UpdateShop(Shop shop)
+        {
+            FilterDefinition<Shop> filter = Builders<Shop>.Filter.Eq("_id", shop.ID);
+            this.Shops.ReplaceOne(filter, shop);
+        }
+
+        public void StoreShop(Shop shop, User user)
+        {
+            FilterDefinition<User> userFilter = Builders<User>.Filter.Eq("_id", user.ID);
+            this.Shops.InsertOne(shop);
+            user.Shop = new MongoDBRef("Shop", shop.ID);
+            this.Users.ReplaceOne(userFilter, user);
+        }
+
 
         /*
         public bool ProveriSifru(byte[] sifra, byte[] salt, string zahtev)

@@ -4,6 +4,7 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace MasterFood.Models
@@ -17,8 +18,11 @@ namespace MasterFood.Models
         public string Description { get; set; }
         public List<string> Tags { get; set; }
         public string Picture { get; set; }
+        [BsonElement("orderCount")]
+        public int OrderCount { get; set; }
         public MongoDBRef Owner { get; set; }
         public List<Item> Items { get; set; }
+        [JsonIgnore]
         public List<MongoDBRef> Orders { get; set; }
     }
 }

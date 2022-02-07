@@ -16,6 +16,7 @@ namespace MasterFood.Models
         public string Name { get; set; }
         public string Address { get; set; }
         public string Phone { get; set; }
+        [BsonElement("Shop")]
         public MongoDBRef Shop { get; set; }
         public List<Item> Items { get; set; }
         //public DateTime OrderTime { get; set; }

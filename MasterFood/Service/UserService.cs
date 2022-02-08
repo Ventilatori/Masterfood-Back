@@ -229,27 +229,18 @@ namespace MasterFood.Service
             FilterDefinition<Shop> filter = Builders<Shop>.Filter.Eq(s => s.ID, shop.ID);
             this.Shops.ReplaceOne(filter, shop);
         }
-
-        /*
-        var findFluent = collection.Find(Builders<Foo>.Filter.ElemMatch(
-        foo => foo.Bars, 
-        foobar => foobar.BarId == "123"));
-
-        var query = Query.And(
-                            Query.Not(Query.EQ("ime", "Jelena")), 
-                            Query.LT("Plata", 40000)
-                            );
-        
-
         public void UpdateItem(string id, Item item)
         {
-            var filter = Builders<Item>.Filter.And(
+            FilterDefinition<Shop> filter = Builders<Shop>.Filter.And(
                     Builders<Shop>.Filter.Eq(s => s.ID, id),
-                    Builders<Shop>.Filter.Where(u => u.Items.Any(x => String.Equals(x.Name, item.Name)))
+                    Builders<Shop>.Filter.ElemMatch(x => x.Items, Builders<Item>.Filter.Eq(i => i.Name, item.Name))
                 );
-            this.Shops.UpdateOne(filter, item);
+
+            var update = Builders<Shop>.Update.Set(x => x.Items[-1], item);
+
+            this.Shops.UpdateOne(filter, update);
         }
-        */
+        
         public void StoreShop(Shop shop, User user)
         {
             //FilterDefinition<User> userFilter = Builders<User>.Filter.Eq("_id", user.ID);

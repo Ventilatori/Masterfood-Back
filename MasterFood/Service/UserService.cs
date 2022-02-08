@@ -231,16 +231,23 @@ namespace MasterFood.Service
         }
         public void UpdateItem(string id, Item item)
         {
+            //ili umesto 1. Filter.And(), ugnezdene u njemu mozes da vezes sa & (ne &&)
             FilterDefinition<Shop> filter = Builders<Shop>.Filter.And(
                     Builders<Shop>.Filter.Eq(s => s.ID, id),
                     Builders<Shop>.Filter.ElemMatch(x => x.Items, Builders<Item>.Filter.Eq(i => i.Name, item.Name))
                 );
+            //filter selektuje svaki Shop koji se poklapa sa id-jem, i koji u svojoj listi x.Items sadrzi bilo koji element koji:
+                //(desna strana posle zareza u ElemMatch)
+                //je Item dokument, i ima Name == item.Name
 
             var update = Builders<Shop>.Update.Set(x => x.Items[-1], item);
+            //bilo koji element koji bude "selektovan" filterom, ovaj update ce se izvrsiti nad njim
+                //bilo koji selektovani element koji zadovoljava filter, u listi x.Items, bice zamenjen sa item
+                //(list[-1] znaci isto sto i list.$, a to znaci da se selektuje element cija je pozicija varijabilna, tj moze biti na bilo kojoj poziciji)
 
             this.Shops.UpdateOne(filter, update);
         }
-        
+
         public void StoreShop(Shop shop, User user)
         {
             //FilterDefinition<User> userFilter = Builders<User>.Filter.Eq("_id", user.ID);

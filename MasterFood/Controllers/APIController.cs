@@ -88,7 +88,8 @@ namespace MasterFood.Controllers
             User user = this.Service.GetUser(null, username);
             if (user.Shop != null)
             {
-                return Ok(this.Service.GetShop(user.Shop.Id.AsString));
+                Shop shop = this.Service.GetShop(user.Shop.Id.AsString);
+                return Ok(shop);
             }
             else
             {
@@ -238,29 +239,6 @@ namespace MasterFood.Controllers
             {
                 return BadRequest(new { message = "Korisnik nema prodavnicu." });
             }
-
-
-            /*
-            string img_path = this.Service.AddImage(newItem.Picture);
-            Item item = new Item
-            {
-                Name = newItem.Name,
-                Description = newItem.Description,
-                Picture = img_path,
-                Price = newItem.Price,
-                Amount = 1,
-                Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
-                Tags = null
-            };
-            Shop shop = this.Service.GetShop(id);
-            if (shop.Items != null)
-            {
-                shop.Items = new List<Item>();
-            }
-            shop.Items.Add(item);
-            this.Service.UpdateShop(shop);
-            return Ok();
-            */
         }
 
         [HttpPut]
@@ -295,9 +273,6 @@ namespace MasterFood.Controllers
             this.Service.LogUser(user.ID, false);
             return Ok();
         }
-
-
-
 
     }
 }

@@ -20,6 +20,7 @@ namespace MasterFood.Models
         public string Picture { get; set; }
         [BsonElement("orderCount")]
         public int OrderCount { get; set; }
+        [JsonIgnore]
         public MongoDBRef Owner { get; set; }
         public List<Item> Items { get; set; }
         [JsonIgnore]

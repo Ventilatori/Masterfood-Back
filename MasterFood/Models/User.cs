@@ -20,6 +20,7 @@ namespace MasterFood.Models
         public string UserName { get; set; }
         public byte[] Password { get; set; }
         public byte[] Salt { get; set; }
+        [BsonElement("online")]
         public bool Online { get; set; }
         public MongoDBRef? Shop { get; set; }
     }

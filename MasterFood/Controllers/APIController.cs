@@ -3,6 +3,7 @@ using MasterFood.Models;
 using MasterFood.RequestResponse;
 using MasterFood.Service;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,38 @@ namespace MasterFood.Controllers
         public APIController(IUserService service)
         {
             this.Service = service;
+        }
+
+        [HttpPost]
+        [Route("CreateAdmin")]
+        public async Task<IActionResult> CreateAdmin()
+        {
+            this.Service.CreateUser();
+            return Ok();
+        }
+
+        [Auth("Admin")]
+        [HttpPost]
+        [Route("CreateOwner")]
+        public async Task<IActionResult> CreateOwner([FromBody] NewOwner request)
+        {
+            User user = this.Service.GetUser(null, request.UserName);
+            if(user!=null)
+            {
+                return BadRequest(new { message = "Korisnik vec postoji." });
+            }
+            byte[] password, salt;
+            this.Service.CreatePassword(out password, out salt, request.Password);
+            user = new User
+            {
+                UserName = request.UserName,
+                Password = password,
+                Salt = salt,
+                Online = false,
+                Shop = null
+            };
+            this.Service.CreateUser(user);
+            return Ok();
         }
 
         [HttpGet]
@@ -47,6 +80,23 @@ namespace MasterFood.Controllers
         }
 
         [Auth]
+        [HttpGet]
+        [Route("GetMyShop")]
+        public async Task<IActionResult> GetMyShop()
+        {
+            string username = (string)HttpContext.Items["UserName"];
+            User user = this.Service.GetUser(null, username);
+            if (user.Shop != null)
+            {
+                return Ok(this.Service.GetShop(user.Shop.Id.AsString));
+            }
+            else
+            {
+                return BadRequest(new { message = "Korisnik nema svoju prodavnicu. Napravite je."});
+            }
+        }
+
+        [Auth]
         [HttpPut]
         [Route("UpdateShop/{id}")]
         public async Task<IActionResult> UpdateShop(string id, [FromBody] ShopRequest changes)
@@ -62,10 +112,7 @@ namespace MasterFood.Controllers
             }
             if (changes.Picture != null)
             {
-                if (!String.Equals(shop.Picture, "default"))
-                {
-                    this.Service.DeleteImage(shop.Picture, IUserService.ImageType.Shop);
-                }
+                this.Service.DeleteImage(shop.Picture, IUserService.ImageType.Shop);
                 shop.Picture = this.Service.AddImage(changes.Picture, IUserService.ImageType.Shop);
             }
             if (changes.Tags != null)
@@ -76,12 +123,16 @@ namespace MasterFood.Controllers
             return Ok();
         }
 
-        [Auth("Admin")]
+        [Auth]
         [HttpPost]
-        [Route("CreateShop/{userID}")]
-        public async Task<IActionResult> CreateShop(string userID, [FromBody] ShopRequest newShop)
+        [Route("CreateShop")]
+        public async Task<IActionResult> CreateShop([FromBody] ShopRequest newShop)
         {
-            User user = this.Service.GetUser(userID);
+            User user = this.Service.GetUser(null, (string)HttpContext.Items["UserName"]);
+            if (user.Shop != null)
+            {
+                return BadRequest(new { message = "Korisnik vec ima prodavnicu."});
+            }
 
             string img_path;
             if (newShop.Picture != null)
@@ -104,7 +155,7 @@ namespace MasterFood.Controllers
                 Picture = img_path,
                 Tags = tags,
                 OrderCount = 0,
-                Owner = new MongoDBRef("User", userID),
+                Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
                 Items = null,
                 Orders = null
             };
@@ -112,11 +163,84 @@ namespace MasterFood.Controllers
             return Ok();
         }
 
-        [Auth("Admin")]
+        [Auth]
         [HttpPost]
         [Route("PostItem/{id}")]
-        public async Task<IActionResult> PostItem(string id, [FromBody] NewItem newItem)
+        public async Task<IActionResult> PostItem(string id, [FromBody] ItemRequest newItem)
         {
+            string img_path = this.Service.AddImage(newItem.Picture);
+            Item item = new Item
+            {
+                Name = newItem.Name,
+                Description = newItem.Description,
+                Picture = img_path,
+                Price = (double)newItem.Price,
+                Amount = 1,
+                Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
+                Tags = null
+            };
+            Shop shop = this.Service.GetShop(id);
+            if (shop.Items != null)
+            {
+                shop.Items = new List<Item>();
+            }
+            else if(shop.Items.Any(x => String.Equals(x.Name, item.Name)))
+            {
+                return BadRequest(new { message = "Prodavnica vec ima ovaj proizvod." });
+            }
+            shop.Items.Add(item);
+            this.Service.UpdateShop(shop);
+            return Ok();
+        }
+
+        [Auth]
+        [HttpPut]
+        [Route("ChangeItem")]
+        public async Task<IActionResult> ChangeItem([FromBody] ItemRequest newItem)
+        {
+            User user = this.Service.GetUser(null, (string)HttpContext.Items["UserName"]);
+            if (user.Shop != null)
+            {
+                Shop shop = this.Service.GetShop(user.Shop.Id.AsString);
+                if (shop.Items != null && shop.Items.Any(x => String.Equals(x.Name, newItem.Name)))
+                {
+                    int index = shop.Items.FindIndex(x => String.Equals(x.Name, newItem.Name));
+                    if (newItem.Description != null)
+                    {
+                        shop.Items[index].Description = newItem.Description;
+                    }
+                    if (newItem.Price != null)
+                    {
+                        shop.Items[index].Price = (double)newItem.Price;
+                    }
+                    if (newItem.Price != null)
+                    {
+                        this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
+                        shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
+                    }
+                    if (newItem.Tags != null)
+                    {
+                        if (shop.Items[index].Tags != null)
+                        {
+                            shop.Items[index].Tags = new List<string>();
+                        }
+                        shop.Items[index].Tags = shop.Items[index].Tags.Union(newItem.Tags).ToList();
+                    }
+                    this.Service.UpdateItem(shop.ID, shop.Items[index]);
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest(new { message = "Prodavnica nema ovaj proizvod." });
+                }
+            }
+            else
+            {
+                return BadRequest(new { message = "Korisnik nema prodavnicu." });
+            }
+
+
+            /*
             string img_path = this.Service.AddImage(newItem.Picture);
             Item item = new Item
             {
@@ -125,7 +249,7 @@ namespace MasterFood.Controllers
                 Picture = img_path,
                 Price = newItem.Price,
                 Amount = 1,
-                Shop = new MongoDBRef("Shop", id),
+                Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
                 Tags = null
             };
             Shop shop = this.Service.GetShop(id);
@@ -136,9 +260,43 @@ namespace MasterFood.Controllers
             shop.Items.Add(item);
             this.Service.UpdateShop(shop);
             return Ok();
+            */
         }
 
-        
+        [HttpPut]
+        [Route("LogIn")]
+        public async Task<IActionResult> LogIn([FromBody] LogInRequest request)
+        {                        
+            User user = this.Service.GetUser(null, request.UserName);
+            if (user == null)
+            {
+                return BadRequest(new { message = "Korisnik ne postoji." });
+            }
+            if(!this.Service.CheckPassword(user.Password, user.Salt, request.Password))
+            {
+                return BadRequest(new { message = "Pogresna sifra." });
+            }
+            this.Service.LogUser(user.ID, true);
+            LogInResponse response = new LogInResponse
+            {
+                ID = user.ID,
+                UserName = user.UserName,
+                Token = this.Service.GenerateToken(user.ID)
+            };
+            return Ok(response);
+        }
+
+        [Auth]
+        [HttpPut]
+        [Route("LogOut")]
+        public async Task<IActionResult> LogOut()
+        {
+            User user = this.Service.GetUser(null, (string)HttpContext.Items["UserName"]);
+            this.Service.LogUser(user.ID, false);
+            return Ok();
+        }
+
+
 
 
     }

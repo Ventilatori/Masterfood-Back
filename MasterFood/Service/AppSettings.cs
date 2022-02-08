@@ -8,5 +8,7 @@ namespace MasterFood.Service
     public class AppSettings
     {
         public string Secret { get; set; }
+        public string AdminUserName { get; set; }
+        public string AdminPassword { get; set; }
     }
 }

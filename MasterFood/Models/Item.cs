@@ -25,7 +25,7 @@ namespace MasterFood.Models
         public MongoDBRef Shop { get; set; }
         //public Shop ShopRef { get; set; }
 
-        public List<string> Tags { get; set; }
+        public List<string>? Tags { get; set; }
 
         public Item() { }
 

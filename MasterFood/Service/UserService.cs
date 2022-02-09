@@ -61,12 +61,13 @@ namespace MasterFood.Service
         private readonly IMongoCollection<Shop> Shops;
         private readonly IMongoCollection<Order> Orders;
         private readonly IMongoCollection<User> Users;
+        private readonly IMongoDatabase database;
 
         public UserService(IWebHostEnvironment environment, IOptions<DbSettings> dbSettings, IOptions<AppSettings> appsettings) {
             this.Environment = environment;
             this._appSettings = appsettings.Value;
             MongoClient client = new MongoClient(dbSettings.Value.ConnectionString);
-            IMongoDatabase database = client.GetDatabase(dbSettings.Value.DatabaseName);
+            database = client.GetDatabase(dbSettings.Value.DatabaseName);
             this.Shops = database.GetCollection<Shop>(dbSettings.Value.ShopCollectionName);
             this.Orders = database.GetCollection<Order>(dbSettings.Value.OrderCollectionName);
             this.Users = database.GetCollection<User>(dbSettings.Value.UserCollectionName);
@@ -293,6 +294,17 @@ namespace MasterFood.Service
             this.Users.UpdateOne(userFilter, userUpdate);
         }
 
+        //public T LoadRecordByID<T>(IMongoCollection<T> collection, int id)
+        //{
+        //    var filter = Builders<T>.Filter.Eq("ID", id);
+        //    return collection.Find(filter).First();
+        //}
+
+        public void DeleteRecordByID<T>(IMongoCollection<T> collection, int id)
+        {
+            var filter = Builders<T>.Filter.Eq("Id", id);
+            collection.DeleteOne(filter);
+        }    
 
     }
 }

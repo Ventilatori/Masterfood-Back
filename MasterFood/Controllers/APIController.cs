@@ -31,7 +31,7 @@ namespace MasterFood.Controllers
             return Ok();
         }
 
-        [Auth("Admin")]
+        //[Auth("Admin")]
         [HttpPost]
         [Route("CreateOwner")]
         public async Task<IActionResult> CreateOwner([FromBody] NewOwner request)
@@ -88,8 +88,9 @@ namespace MasterFood.Controllers
             User user = this.Service.GetUser(null, username);
             if (user.Shop != null)
             {
+                var vrsta = user.Shop.Id.GetType();
                 Shop shop = this.Service.GetShop(user.Shop.Id.AsString);
-                return Ok(shop);
+                return Ok(user.Shop);
             }
             else
             {

@@ -12,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Collections.Generic;
 using MongoDB.Bson;
+using System.Security.Cryptography;
 
 namespace MasterFood.Service
 {
@@ -35,22 +36,21 @@ namespace MasterFood.Service
         };
         string AddImage(IFormFile? image, ImageType img_type = IUserService.ImageType.Item);
         bool DeleteImage(string image, IUserService.ImageType img_type);
-        string GenerateToken(User user);
+        string GenerateToken(string id);
         (string username, IUserService.AccountType type)? CheckToken(string token);
+        bool CheckPassword(byte[] password, byte[] salt, string password_string);
+        void CreatePassword(out byte[] password, out byte[] salt, string password_string);
         User FindUser(string id);
         List<Shop> GetAllShops(int page_num, int page_size);
         List<Shop> PopularShops(int page_size);
         Shop GetShop(string id);
         void UpdateShop(Shop shop);
-        User GetUser(string id);
+        void UpdateItem(string id, Item item);
+        User? GetUser(string? id, string username = "");
         void StoreShop(Shop shop, User user);
-        /*
-        int PinGenerator();
-        void PinUpdate(Korisnik korisnik, int PIN);
-        bool ProveriSifru(byte[] sifra, byte[] salt, string zahtev);
-        void HesirajSifru(out byte[] hash, out byte[] salt, string sifra);
-        string? ProveriPrisutpNalogu(int id, Korisnik tmpKorisnik = null);
-        */
+        void CreateUser(User new_user = null);
+        void LogUser(string id, bool status);
+
     }
 
     public class UserService : IUserService
@@ -111,13 +111,13 @@ namespace MasterFood.Service
                 return true;
             }
         }
-        public string GenerateToken(User user)
+        public string GenerateToken(string id)
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             byte[] key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("id", user.ID) }),
+                Subject = new ClaimsIdentity(new[] { new Claim("id", id) }),
                 Expires = DateTime.UtcNow.AddDays(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
@@ -156,6 +156,29 @@ namespace MasterFood.Service
                 return null;
             }
         }
+        public bool CheckPassword(byte[] password, byte[] salt, string password_string)
+        {
+            HMACSHA512 hashObj = new HMACSHA512(salt);
+            byte[] byte_password = System.Text.Encoding.UTF8.GetBytes(password_string);
+            byte[] hash = hashObj.ComputeHash(byte_password);
+            int len = hash.Length;
+            for (int i = 0; i < len; i++)
+            {
+                if (password[i] != hash[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        //CreatePassword(out byte[] password, out byte[] salt, string password_string)
+        public void CreatePassword(out byte[] password, out byte[] salt, string password_string)
+        {
+            HMACSHA512 hashObj = new HMACSHA512();
+            salt = hashObj.Key;
+            byte[] byte_password = Encoding.UTF8.GetBytes(password_string);
+            password = hashObj.ComputeHash(byte_password);
+        }
         public User FindUser(string id)
         {
             return this.Users.Find(u => u.ID == id).FirstOrDefaultAsync().Result;
@@ -176,90 +199,100 @@ namespace MasterFood.Service
 
         public Shop GetShop(string id)
         {
-            FilterDefinition<Shop> filter = Builders<Shop>.Filter.Eq("_id", id);
+            //FilterDefinition<Shop> filter = Builders<Shop>.Filter.Eq("_id", id);
+            FilterDefinition<Shop> filter = Builders<Shop>.Filter.Eq(s => s.ID, id);
             return this.Shops.Find(filter).FirstOrDefault();
         }
 
-        public User GetUser(string id)
+        public User? GetUser(string? id, string username = "")
         {
-            FilterDefinition<User> filter = Builders<User>.Filter.Eq("_id", id);
+            FilterDefinition<User> filter;
+            if (id != null)
+            {
+                //filter = Builders<User>.Filter.Eq("_id", id);
+                filter = Builders<User>.Filter.Eq(u=> u.ID, id);
+            }
+            else if(!String.IsNullOrEmpty(username))
+            {
+                filter = Builders<User>.Filter.Eq(p => p.UserName, username);
+            }
+            else
+            {
+                return null;
+            }
             return this.Users.Find(filter).FirstOrDefault();
-        }
+        }       
 
         public void UpdateShop(Shop shop)
         {
-            FilterDefinition<Shop> filter = Builders<Shop>.Filter.Eq("_id", shop.ID);
+            //FilterDefinition<Shop> filter = Builders<Shop>.Filter.Eq("_id", shop.ID);
+            FilterDefinition<Shop> filter = Builders<Shop>.Filter.Eq(s => s.ID, shop.ID);
             this.Shops.ReplaceOne(filter, shop);
+        }
+        public void UpdateItem(string id, Item item)
+        {
+            //ili umesto 1. Filter.And(), ugnezdene u njemu mozes da vezes sa & (ne &&)
+            FilterDefinition<Shop> filter = Builders<Shop>.Filter.And(
+                    Builders<Shop>.Filter.Eq(s => s.ID, id),
+                    Builders<Shop>.Filter.ElemMatch(x => x.Items, Builders<Item>.Filter.Eq(i => i.Name, item.Name))
+                );
+            //filter selektuje svaki Shop koji se poklapa sa id-jem, i koji u svojoj listi x.Items sadrzi bilo koji element koji:
+                //(desna strana posle zareza u ElemMatch)
+                //je Item dokument, i ima Name == item.Name
+
+            var update = Builders<Shop>.Update.Set(x => x.Items[-1], item);
+            //bilo koji element koji bude "selektovan" filterom, ovaj update ce se izvrsiti nad njim
+                //bilo koji selektovani element koji zadovoljava filter, u listi x.Items, bice zamenjen sa item
+                //(list[-1] znaci isto sto i list.$, a to znaci da se selektuje element cija je pozicija varijabilna, tj moze biti na bilo kojoj poziciji)
+
+            this.Shops.UpdateOne(filter, update);
         }
 
         public void StoreShop(Shop shop, User user)
         {
-            FilterDefinition<User> userFilter = Builders<User>.Filter.Eq("_id", user.ID);
+            //FilterDefinition<User> userFilter = Builders<User>.Filter.Eq("_id", user.ID);
+            FilterDefinition<User> userFilter = Builders<User>.Filter.Eq(u => u.ID, user.ID);
             this.Shops.InsertOne(shop);
-            user.Shop = new MongoDBRef("Shop", shop.ID);
+            //user.Shop = new MongoDBRef("Shop", shop.ID);
+            user.Shop = new MongoDBRef("Shop", BsonValue.Create(shop.ID));
             this.Users.ReplaceOne(userFilter, user);
         }
 
-
-        /*
-        public bool ProveriSifru(byte[] sifra, byte[] salt, string zahtev)
+        public void CreateUser(User new_user = null)
         {
-            HMACSHA512 hashObj = new HMACSHA512(salt);
-            byte[] password = System.Text.Encoding.UTF8.GetBytes(zahtev);
-            byte[] hash = hashObj.ComputeHash(password);
-
-            int len = hash.Length;
-            for (int i = 0; i < len; i++)
+            if (new_user == null)
             {
-                if (sifra[i] != hash[i])
+                User user = this.GetUser(null, IUserService.AccountType.Admin.ToString());
+                if (user == null)
                 {
-                    return false;
+                    byte[] password, salt;
+                    this.CreatePassword(out password, out salt, this._appSettings.AdminPassword);
+                    user = new User
+                    {
+                        UserType = IUserService.AccountType.Admin,
+                        UserName = this._appSettings.AdminUserName,
+                        Password = password,
+                        Salt = salt,
+                        Online = false,
+                        Shop = null
+                    };
+                    this.Users.InsertOne(user);
                 }
             }
-            return true;
-        }
-        public void HesirajSifru(out byte[] hash, out byte[] salt, string sifra)
-        {
-            HMACSHA512 hashObj = new HMACSHA512();
-            salt = hashObj.Key;
-            byte[] password = Encoding.UTF8.GetBytes(sifra);
-            hash = hashObj.ComputeHash(password);
-        }
-        public int PinGenerator()
-        {
-            int _min = 1000;
-            int _max = 9999;
-            Random _rdm = new Random();
-            return _rdm.Next(_min, _max);
-        }
-        public void PinUpdate(Korisnik korisnik, int PIN) {
-            korisnik.PIN = PIN;
-            Context.Update<Korisnik>(korisnik);
-            Context.SaveChanges();
-        }
-        public string? ProveriPrisutpNalogu(int id, Korisnik tmpKorisnik = null)
-        {
-            Korisnik korisnik = Context.Korisnici.Find(id);
-            if (korisnik == null)
+            else
             {
-                string message = "Korisnik ne postoji. Moguce da je poslat pogresan ID.";
-                return message;
+                this.Users.InsertOne(new_user);
             }
-            else if (korisnik.Odobren == false)
-            {
-                string message = "Nalog nije odobren.";
-                return message;
-            }
-            if(tmpKorisnik != null)
-            {
-                if (id != tmpKorisnik.ID)
-                {
-                    string message = "Nemate pristup ovom nalogu.";
-                    return message;
-                }
-            }
-            return null;
         }
-        */
+
+        public void LogUser(string id, bool status)
+        {
+            FilterDefinition<User> userFilter = Builders<User>.Filter.Eq(u => u.ID, id);
+            //UpdateDefinition<User> userUpdate = Builders<User>.Update.Set("online", status);
+            UpdateDefinition<User> userUpdate = Builders<User>.Update.Set(x => x.Online, status);
+            this.Users.UpdateOne(userFilter, userUpdate);
+        }
+
+
     }
 }

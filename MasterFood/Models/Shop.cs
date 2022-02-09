@@ -23,7 +23,7 @@ namespace MasterFood.Models
         [JsonIgnore]
         public MongoDBRef Owner { get; set; }
         public List<Item> Items { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         public List<MongoDBRef> Orders { get; set; }
     }
 }

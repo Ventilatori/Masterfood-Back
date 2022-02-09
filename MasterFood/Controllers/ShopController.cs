@@ -98,7 +98,10 @@ namespace MasterFood.Controllers
 
         [HttpPut]
         [Route("Shop/{id}/Item")]
-        public async Task<IActionResult> UpdateItem() { return Ok(); }
+        public async Task<IActionResult> UpdateItem() 
+        { 
+            return Ok(); 
+        }
 
 
         [HttpDelete]
@@ -114,11 +117,33 @@ namespace MasterFood.Controllers
 
         [HttpGet]
         [Route("Shop/{id}/Order")]
-        public async Task<IActionResult> GetShopOrders() { return Ok(); }
+        public async Task<IActionResult> GetShopOrders(string id) 
+        {
+            //var filterS = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
+            //var shop = Shops.Find(filterS).First();
+
+            //var filter = Builders<Order>.Filter.Eq("Shop.ID", ObjectId.Parse(id));
+            //var shop = Shops.Find(filter).First();
+
+            return Ok(); 
+        }
 
         [HttpPost]
-        [Route("Shop/{id}/Order")]
-        public async Task<IActionResult> CreateOrder() { return Ok(); }
+        [Route("Shop/{id}/Order")]      //TODO: wont accept order items, serialization error
+        public async Task<IActionResult> CreateOrder([FromBody] Order newOrder, string id) 
+        {
+      
+
+            //var filterS = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
+            //var shop = Shops.Find(filterS).First();
+
+            Orders.InsertOne(newOrder);
+            newOrder.Shop = new MongoDBRef("Shop", BsonValue.Create(id));
+
+            FilterDefinition<Order> ofilter = Builders<Order>.Filter.Eq(o => o.ID, newOrder.ID);
+            Orders.ReplaceOne(ofilter, newOrder );
+            return Ok(); 
+        }
 
         [HttpPut]
         [Route("Shop/{id}/Order/OrderID")]

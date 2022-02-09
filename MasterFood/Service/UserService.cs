@@ -252,11 +252,11 @@ namespace MasterFood.Service
         public void StoreShop(Shop shop, User user)
         {
             //FilterDefinition<User> userFilter = Builders<User>.Filter.Eq("_id", user.ID);
-            FilterDefinition<User> userFilter = Builders<User>.Filter.Eq(u => u.ID, user.ID);
-            this.Shops.InsertOne(shop);
-            //user.Shop = new MongoDBRef("Shop", shop.ID);
-            user.Shop = new MongoDBRef("Shop", BsonValue.Create(shop.ID));
-            this.Users.ReplaceOne(userFilter, user);
+          //g
+          //  this.Shops.InsertOne(shop);
+          //  //user.Shop = new MongoDBRef("Shop", shop.ID);
+          //  user.Shop = new MongoDBRef("Shop", BsonValue.Create(shop.ID));
+          //  this.Users.ReplaceOne(userFilter, user);
         }
 
         public void CreateUser(User new_user = null)
@@ -304,7 +304,9 @@ namespace MasterFood.Service
         {
             var filter = Builders<T>.Filter.Eq("Id", id);
             collection.DeleteOne(filter);
-        }    
+        }
+
+   
 
     }
 }

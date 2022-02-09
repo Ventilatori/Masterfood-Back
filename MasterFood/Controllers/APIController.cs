@@ -23,8 +23,7 @@ namespace MasterFood.Controllers
             this.Service = service;
         }
 
-       
-
+      
         [HttpGet]
         [Route("GetAllShops/{page_num}/{page_size}")]
         public async Task<IActionResult> GetShops(int page_num, int page_size)

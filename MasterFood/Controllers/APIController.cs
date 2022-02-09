@@ -23,37 +23,7 @@ namespace MasterFood.Controllers
             this.Service = service;
         }
 
-        [HttpPost]
-        [Route("CreateAdmin")]
-        public async Task<IActionResult> CreateAdmin()
-        {
-            this.Service.CreateUser();
-            return Ok();
-        }
-
-        //[Auth("Admin")]
-        [HttpPost]
-        [Route("CreateOwner")]
-        public async Task<IActionResult> CreateOwner([FromBody] NewOwner request)
-        {
-            User user = this.Service.GetUser(null, request.UserName);
-            if(user!=null)
-            {
-                return BadRequest(new { message = "Korisnik vec postoji." });
-            }
-            byte[] password, salt;
-            this.Service.CreatePassword(out password, out salt, request.Password);
-            user = new User
-            {
-                UserName = request.UserName,
-                Password = password,
-                Salt = salt,
-                Online = false,
-                Shop = null
-            };
-            this.Service.CreateUser(user);
-            return Ok();
-        }
+       
 
         [HttpGet]
         [Route("GetAllShops/{page_num}/{page_size}")]
@@ -240,39 +210,6 @@ namespace MasterFood.Controllers
             {
                 return BadRequest(new { message = "Korisnik nema prodavnicu." });
             }
-        }
-
-        [HttpPut]
-        [Route("LogIn")]
-        public async Task<IActionResult> LogIn([FromBody] LogInRequest request)
-        {                        
-            User user = this.Service.GetUser(null, request.UserName);
-            if (user == null)
-            {
-                return BadRequest(new { message = "Korisnik ne postoji." });
-            }
-            if(!this.Service.CheckPassword(user.Password, user.Salt, request.Password))
-            {
-                return BadRequest(new { message = "Pogresna sifra." });
-            }
-            this.Service.LogUser(user.ID, true);
-            LogInResponse response = new LogInResponse
-            {
-                ID = user.ID,
-                UserName = user.UserName,
-                Token = this.Service.GenerateToken(user.ID)
-            };
-            return Ok(response);
-        }
-
-        [Auth]
-        [HttpPut]
-        [Route("LogOut")]
-        public async Task<IActionResult> LogOut()
-        {
-            User user = this.Service.GetUser(null, (string)HttpContext.Items["UserName"]);
-            this.Service.LogUser(user.ID, false);
-            return Ok();
         }
 
     }

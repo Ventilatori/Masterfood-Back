@@ -22,5 +22,7 @@ namespace MasterFood.Models
         //public DateTime OrderTime { get; set; }
         //public DateTime CompletionTime { get; set; }
         public string Status{ get; set; }
+
+     
     }
 }

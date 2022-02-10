@@ -12,8 +12,8 @@ namespace MasterFood.Models
     {
 
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string ID { get; set; }
+        //[BsonRepresentation(BsonType.ObjectId)]
+        public ObjectId? ID { get; set; }
 
         public string Name { get; set; }
         public string Description { get; set; }
@@ -25,21 +25,24 @@ namespace MasterFood.Models
         //public Shop ShopRef { get; set; }
 
         public List<string>? Tags { get; set; }
-
-        public Item() { }
-
-        public Item(Item old, int amount)
+        public Item()
         {
-            this.Name = old.Name;
-            this.Description = old.Description;
-            this.Picture = old.Picture;
-            this.Price = old.Price;
-            this.Amount = amount;
-            this.Shop = old.Shop;
-            if (old.Tags.Any())
-            {
-                this.Tags = new List<string>(old.Tags);
-            }
+            ID = ObjectId.GenerateNewId();
         }
+        //public Item() { }
+
+        //public Item(Item old, int amount)
+        //{
+        //    this.Name = old.Name;
+        //    this.Description = old.Description;
+        //    this.Picture = old.Picture;
+        //    this.Price = old.Price;
+        //    this.Amount = amount;
+        //    this.Shop = old.Shop;
+        //    if (old.Tags.Any())
+        //    {
+        //        this.Tags = new List<string>(old.Tags);
+        //    }
+        //}
     }
 }

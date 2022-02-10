@@ -188,7 +188,8 @@ namespace MasterFood.Controllers
             string img_path = this.Service.AddImage(newItem.Picture);
             Item item = new Item
             {
-                Name = newItem.Name,
+               
+            Name = newItem.Name,
                 Description = newItem.Description,
                 Picture = img_path,
                 Price = (double)newItem.Price,
@@ -221,9 +222,9 @@ namespace MasterFood.Controllers
             //{
           
                 Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
-                if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID, itemid)))
+                if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
                 {
-                    int index = shop.Items.FindIndex(x => String.Equals(x.ID, itemid));
+                    int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
                     if (newItem.Description != null)
                     {
                         shop.Items[index].Description = newItem.Description;

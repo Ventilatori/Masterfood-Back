@@ -60,11 +60,31 @@ namespace MasterFood.Controllers
 
         [HttpPut]
         [Route("Shop/{id}")]
-        public async Task<IActionResult> UpdateShop(string id, [FromBody] Shop updatedS) 
+        public async Task<IActionResult> UpdateShop(string id, [FromBody] ShopRequest changes) 
         {
-            var filter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
-            var shop = Shops.Find(filter).First();
-            await Shops.ReplaceOneAsync(filter, updatedS);
+            //var filter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
+            //var shop = Shops.Find(filter).First();
+            //await Shops.ReplaceOneAsync(filter, updatedS);
+
+            Shop shop = this.Service.GetShop(id);
+            if (changes.Name != null)
+            {
+                shop.Name = changes.Name;
+            }
+            if (changes.Description != null)
+            {
+                shop.Description = changes.Description;
+            }
+            if (changes.Picture != null)
+            {
+                this.Service.DeleteImage(shop.Picture, IUserService.ImageType.Shop);
+                shop.Picture = this.Service.AddImage(changes.Picture, IUserService.ImageType.Shop);
+            }
+            if (changes.Tags != null)
+            {
+                //shop.Tags = shop.Tags.Union(changes.Tags).ToList();  ADAPTIRAJ JE SU SAD TAGOVI STRINGS
+            }
+            this.Service.UpdateShop(shop);
             return Ok(); 
         }
 
@@ -163,7 +183,11 @@ namespace MasterFood.Controllers
 
         [HttpPost]
         [Route("Shop/{id}/Item")]
-        public async Task<IActionResult> AddItem(){return Ok();}
+        public async Task<IActionResult> AddItem()
+        {
+
+            return Ok();
+        }
 
         [HttpPut]
         [Route("Shop/{id}/Item")]

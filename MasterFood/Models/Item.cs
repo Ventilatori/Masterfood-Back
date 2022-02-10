@@ -21,7 +21,6 @@ namespace MasterFood.Models
         public double Price { get; set; }
         public int Amount { get; set; }
 
-        [BsonRepresentation(BsonType.Document)]
         public MongoDBRef Shop { get; set; }
         //public Shop ShopRef { get; set; }
 

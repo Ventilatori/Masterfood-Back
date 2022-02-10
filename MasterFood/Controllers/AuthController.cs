@@ -73,7 +73,7 @@ namespace MasterFood.Controllers
                 UserName = user.UserName,
                 Token = this.Service.GenerateToken(user.ID),
                 Level = user.UserType,
-                ShopID = user.Shop.Id.ToString()
+                ShopID = user.Shop == null ? null : user.Shop.Id.ToString()
             };
             return Ok(response);
         }

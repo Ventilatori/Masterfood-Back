@@ -128,7 +128,7 @@ namespace MasterFood.Controllers
                 OrderCount = 0,
                 Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
                 Items = null,
-                Orders = null
+                //Orders = null
             };
             this.Service.StoreShop(shop, user);
             return Ok();

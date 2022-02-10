@@ -150,7 +150,7 @@ namespace MasterFood.Controllers
                 OrderCount = 0,
                 Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
                 Items = null,
-                Orders = null
+              //  Orders = null
             };
 
             //store shop
@@ -307,12 +307,9 @@ namespace MasterFood.Controllers
         public async Task<IActionResult> GetShopOrders(string id) 
         {
 
-            //var sfilter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
-            //var shop = Shops.Find(sfilter).First();
-
-            //var ofilter = Builders<Order>.Filter.AnyEq(x => x.ID)
-            //var orders = 
-            return Ok();
+            var sfilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(id));
+            var orders = OrderLists.Find(sfilter).First();
+            return Ok(orders);
         }
 
         [HttpPost]

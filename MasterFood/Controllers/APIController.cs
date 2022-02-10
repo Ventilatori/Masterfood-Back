@@ -114,10 +114,10 @@ namespace MasterFood.Controllers
             {
                 img_path = "default.png";
             }
-            List<string> tags = null;
+            string tags = null;
             if (newShop.Tags!=null)
             {
-                tags = new List<string>(newShop.Tags);
+                tags = newShop.Tags;
             }
             Shop shop = new Shop
             {

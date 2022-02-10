@@ -82,7 +82,7 @@ namespace MasterFood.Controllers
             }
             if (changes.Tags != null)
             {
-                //shop.Tags = shop.Tags.Union(changes.Tags).ToList();  ADAPTIRAJ JE SU SAD TAGOVI STRINGS
+                shop.Tags = changes.Tags;
             }
             this.Service.UpdateShop(shop);
             return Ok(); 

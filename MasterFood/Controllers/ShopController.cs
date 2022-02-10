@@ -194,6 +194,16 @@ namespace MasterFood.Controllers
         public async Task<IActionResult> AddItem(string id, [FromForm] ItemRequest newItem)
         {
             string img_path = this.Service.AddImage(newItem.Picture);
+
+            List<string> tagList = new List<string>();
+            if (newItem.Tags != null)
+            {
+
+                string[] tagArray = newItem.Tags.Split(',');
+                tagList = tagArray.ToList<string>();
+
+            }
+
             Item item = new Item
             {
                
@@ -203,7 +213,7 @@ namespace MasterFood.Controllers
                 Price = (double)newItem.Price,
                 Amount = 1,
                 //Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
-                Tags = null
+                Tags = tagList
             };
             Shop shop = this.Service.GetShop(id);
             if (shop.Items == null)
@@ -225,48 +235,56 @@ namespace MasterFood.Controllers
         {
             //TODO: turn on auth 
 
-            //User user = this.Service.GetUser(null, (string)HttpContext.Items["UserName"]);
-            //if (user.Shop == null)
-            //{
+            User user = this.Service.GetUser(null, (string)HttpContext.Items["UserName"]);
+            if (user.Shop == null)
+            {
 
-            //Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
-            //if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
-            //{
+                Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
+                if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
+                {
 
-            //int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
-            //if (newItem.Description != null)
-            //{
-            //    shop.Items[index].Description = newItem.Description;
-            //}
-            //if (newItem.Name != null)
-            //{
-            //    shop.Items[index].Name = newItem.Name;
-            //}
-            //if (newItem.Price != null)
-            //{
-            //    shop.Items[index].Price = (double)newItem.Price;
-            //}
-            //if (newItem.Picture != null)
-            //{
-            //    this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
-            //    shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
-            //}
-            //if (newItem.Tags != null)
-            //{
-            //    shop.Items[index].Tags = newItem.Tags;
-            //}
-            //this.Service.UpdateItem(shop.ID, shop.Items[index]);
-            //return Ok();
-            //}
-            //else
-            //{
-            //    return BadRequest(new { message = "Shop does not have this item." });
-            //}
-            //}
-            //else
-            //{
-            //    return BadRequest(new { message = "User does not have shop." });
-            //}
+                    int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
+                    if (newItem.Description != null)
+                    {
+                        shop.Items[index].Description = newItem.Description;
+                    }
+                    if (newItem.Name != null)
+                    {
+                        shop.Items[index].Name = newItem.Name;
+                    }
+                    if (newItem.Price != null)
+                    {
+                        shop.Items[index].Price = (double)newItem.Price;
+                    }
+                    if (newItem.Picture != null)
+                    {
+                        this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
+                        shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
+                    }
+                    List<string> tagList = new List<string>();
+                    if (newItem.Tags != null)
+                    {
+
+                        string[] tagArray = newItem.Tags.Split(',');
+                        tagList = tagArray.ToList<string>();
+
+                    }
+                    if (newItem.Tags != null)
+                    {
+                       // shop.Items[index].Tags = newItem.Tags;
+                    }
+                    this.Service.UpdateItem(shop.ID, shop.Items[index]);
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest(new { message = "Shop does not have this item." });
+                }
+            }
+            else
+            {
+                return BadRequest(new { message = "User does not have shop." });
+            }
             return Ok();
         }
     
@@ -298,16 +316,13 @@ namespace MasterFood.Controllers
         [Route("Shop/{id}/Order")]      //TODO: wont accept order items, serialization error
         public async Task<IActionResult> CreateOrder([FromBody] Order newOrder, string id) 
         {
-      
 
-            //var filterS = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
-            //var shop = Shops.Find(filterS).First();
-
+            var sfilter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
+            var shop = Shops.Find(sfilter).First();
             Orders.InsertOne(newOrder);
-           // newOrder.Shop = new MongoDBRef("Shop", BsonValue.Create(id));
-
-            FilterDefinition<Order> ofilter = Builders<Order>.Filter.Eq(o => o.ID, newOrder.ID);
-            Orders.ReplaceOne(ofilter, newOrder );
+            if(shop.Orders == null) shop.Orders = new List<MongoDBRef>();
+            shop.Orders.Add(new MongoDBRef("Order", BsonValue.Create(newOrder.ID)));
+            Shops.ReplaceOne(sfilter, shop);
             return Ok(); 
         }
 

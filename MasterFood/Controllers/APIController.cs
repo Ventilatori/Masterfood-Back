@@ -195,7 +195,7 @@ namespace MasterFood.Controllers
                         {
                             shop.Items[index].Tags = new List<string>();
                         }
-                        shop.Items[index].Tags = shop.Items[index].Tags.Union(newItem.Tags).ToList();
+                        //shop.Items[index].Tags = shop.Items[index].Tags.Union(newItem.Tags).ToList();
                     }
                     this.Service.UpdateItem(shop.ID, shop.Items[index]);
                     return Ok();

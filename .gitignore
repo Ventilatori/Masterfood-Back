@@ -852,4 +852,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 #folders
-./MasterFood/wwwroot/Images
+./MasterFood/wwwroot/Images/*

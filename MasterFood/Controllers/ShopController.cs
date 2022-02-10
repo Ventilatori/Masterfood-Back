@@ -19,19 +19,20 @@ namespace MasterFood.Controllers
         public AppSettings _appSettings { get; set; }
 
         private readonly IMongoCollection<Shop> Shops;
-        private readonly IMongoCollection<Order> Orders;
+        private readonly IMongoCollection<OrderList> OrderLists;
         private readonly IMongoCollection<User> Users;
         private readonly IMongoDatabase database;
+        private readonly IOptions<DbSettings> dbSettings;
 
-        public ShopController(IUserService service/*, IWebHostEnvironment environment*/, IOptions<DbSettings> dbSettings, IOptions<AppSettings> appsettings)
+        public ShopController(IUserService service, IOptions<DbSettings> dbSettings, IOptions<AppSettings> appsettings)
         {
-           
+            this.dbSettings = dbSettings;
             //this.Environment = environment;
             this._appSettings = appsettings.Value;
             MongoClient client = new MongoClient(dbSettings.Value.ConnectionString);
             database = client.GetDatabase(dbSettings.Value.DatabaseName);
             this.Shops = database.GetCollection<Shop>(dbSettings.Value.ShopCollectionName);
-            this.Orders = database.GetCollection<Order>(dbSettings.Value.OrderCollectionName);
+            this.OrderLists = database.GetCollection<OrderList>(dbSettings.Value.OrderCollectionName);
             this.Users = database.GetCollection<User>(dbSettings.Value.UserCollectionName);
             this.Service = service;
         }
@@ -306,23 +307,47 @@ namespace MasterFood.Controllers
         public async Task<IActionResult> GetShopOrders(string id) 
         {
 
-            //var filter = Builders<Order>.Filter.Eq("Shop.ID", ObjectId.Parse(id));
-            //var shop = Shops.Find(filter).First();
+            //var sfilter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
+            //var shop = Shops.Find(sfilter).First();
 
-            return Ok(); 
+            //var ofilter = Builders<Order>.Filter.AnyEq(x => x.ID)
+            //var orders = 
+            return Ok();
         }
 
         [HttpPost]
-        [Route("Shop/{id}/Order")]      //TODO: wont accept order items, serialization error
+        [Route("Shop/{id}/Order")]   
         public async Task<IActionResult> CreateOrder([FromBody] Order newOrder, string id) 
         {
-
-            var sfilter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
+            string shopID = id;
+            var sfilter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(shopID));
             var shop = Shops.Find(sfilter).First();
-            Orders.InsertOne(newOrder);
-            if(shop.Orders == null) shop.Orders = new List<MongoDBRef>();
-            shop.Orders.Add(new MongoDBRef("Order", BsonValue.Create(newOrder.ID)));
-            Shops.ReplaceOne(sfilter, shop);
+            
+            var ofilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(shopID));
+            newOrder.ID = ObjectId.GenerateNewId().ToString();
+
+            //check check if OrderLists collection exists
+            var filterr = new BsonDocument("name", dbSettings.Value.OrderCollectionName);
+            var options = new ListCollectionNamesOptions { Filter = filterr };
+            bool OrderListsExists = database.ListCollectionNames(options).Any();
+
+            var shopOrderList = OrderListsExists ? OrderLists.Find(ofilter).First() : null ;
+            if (shopOrderList == null)
+            {
+  
+                OrderList ol = new OrderList();
+                ol.ID = shopID;
+                ol.Orders = new List<Order>();
+              
+                ol.Orders.Add(newOrder);
+                OrderLists.InsertOne(ol);
+            }
+            else
+            {
+                shopOrderList.Orders.Add(newOrder);
+                OrderLists.ReplaceOne(ofilter, shopOrderList);
+            }
+           
             return Ok(); 
         }
 

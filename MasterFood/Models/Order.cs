@@ -23,10 +23,10 @@ namespace MasterFood.Models
         //public DateTime CompletionTime { get; set; }
         public string Status{ get; set; }
 
-        //public Order()
-        //{
-        //    ID = ObjectId.GenerateNewId().ToString();
-        //}
+        public Order()
+        {
+            ID = ObjectId.GenerateNewId().ToString();
+        }
 
     }
 }

@@ -181,11 +181,32 @@ namespace MasterFood.Controllers
         }
         #region shop item methods
 
-        [HttpPost]
+        [HttpPost] // TODO: do we really need ref to shop???
         [Route("Shop/{id}/Item")]
-        public async Task<IActionResult> AddItem()
+        public async Task<IActionResult> AddItem(string id, [FromForm] ItemRequest newItem)
         {
-
+            string img_path = this.Service.AddImage(newItem.Picture);
+            Item item = new Item
+            {
+                Name = newItem.Name,
+                Description = newItem.Description,
+                Picture = img_path,
+                Price = (double)newItem.Price,
+                Amount = 1,
+                Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
+                Tags = null
+            };
+            Shop shop = this.Service.GetShop(id);
+            if (shop.Items == null)
+            {
+                shop.Items = new List<Item>();
+            }
+            else if (shop.Items.Any(x => String.Equals(x.Name, item.Name)))
+            {
+                return BadRequest(new { message = "Prodavnica vec ima ovaj proizvod." });
+            }
+            shop.Items.Add(item);
+            this.Service.UpdateShop(shop);
             return Ok();
         }
 

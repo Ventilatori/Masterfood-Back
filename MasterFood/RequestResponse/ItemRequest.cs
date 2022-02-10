@@ -12,6 +12,7 @@ namespace MasterFood.RequestResponse
         [Required]
         public string Name { get; set; }
         public string? Description { get; set; }
+        [Required]
         public double? Price { get; set; }
         public IFormFile? Picture { get; set; }
         public List<string>? Tags { get; set; }

@@ -16,7 +16,7 @@ namespace MasterFood.Models
         public string ID { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public string Tags { get; set; }
+        public List<string> Tags { get; set; }
         public string Picture { get; set; }
         [BsonElement("orderCount")]
         public int OrderCount { get; set; }

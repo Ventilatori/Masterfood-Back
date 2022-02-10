@@ -60,7 +60,7 @@ namespace MasterFood.Controllers
 
         [HttpPut]
         [Route("Shop/{id}")]
-        public async Task<IActionResult> UpdateShop(string id, [FromBody] ShopRequest changes)  // TODO fix fromform
+        public async Task<IActionResult> UpdateShop(string id, [FromForm] ShopRequest changes)  // TODO fix fromform
         {
             //var filter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
             //var shop = Shops.Find(filter).First();
@@ -82,7 +82,9 @@ namespace MasterFood.Controllers
             }
             if (changes.Tags != null)
             {
-                shop.Tags = changes.Tags;
+                string[] tagArray = changes.Tags.Split(',');
+                var tagList = tagArray.ToList<string>();
+                shop.Tags = tagList;
             }
             this.Service.UpdateShop(shop);
             return Ok(); 
@@ -127,17 +129,23 @@ namespace MasterFood.Controllers
             {
                 img_path = "default.png";
             }
-            //List<string> tags = null;
-            //if (data.Tags != null)
-            //{
-            //    tags = new List<string>(data.Tags);
-            //}
+            List<string> tagList = new List<string>(); 
+            if (data.Tags != null)
+            {
+           
+                string[] tagArray = data.Tags.Split(',');
+                tagList = tagArray.ToList<string>();
+               
+            }
+
+           
+
             Shop shop = new Shop
             {
                 Name = data.Name,
                 Description = data.Description,
                 Picture = img_path,
-                Tags = data.Tags,
+                Tags = tagList,
                 OrderCount = 0,
                 Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
                 Items = null,
@@ -296,7 +304,7 @@ namespace MasterFood.Controllers
             //var shop = Shops.Find(filterS).First();
 
             Orders.InsertOne(newOrder);
-            newOrder.Shop = new MongoDBRef("Shop", BsonValue.Create(id));
+           // newOrder.Shop = new MongoDBRef("Shop", BsonValue.Create(id));
 
             FilterDefinition<Order> ofilter = Builders<Order>.Filter.Eq(o => o.ID, newOrder.ID);
             Orders.ReplaceOne(ofilter, newOrder );

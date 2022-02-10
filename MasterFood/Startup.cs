@@ -28,6 +28,14 @@ namespace MasterFood
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CORS", builder =>
+                {
+                    builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+                });
+            });
+
             services.Configure<DbSettings>(Configuration.GetSection("DbSettings"));
             services.AddScoped<IUserService, UserService>();
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
@@ -49,10 +57,14 @@ namespace MasterFood
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MasterFood v1"));
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
+
+            app.UseStaticFiles();
+          
 
             app.UseRouting();
-
+            app.UseCors("CORS");
+      
             app.UseAuthorization();
 
             app.UseMiddleware<JWTMiddleware>();

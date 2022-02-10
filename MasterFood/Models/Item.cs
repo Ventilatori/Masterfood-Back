@@ -10,11 +10,11 @@ namespace MasterFood.Models
 {
     public class Item
     {
-        /*
+
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string ID { get; set; }
-        */
+
         public string Name { get; set; }
         public string Description { get; set; }
         public string Picture { get; set; }

@@ -220,45 +220,46 @@ namespace MasterFood.Controllers
             //User user = this.Service.GetUser(null, (string)HttpContext.Items["UserName"]);
             //if (user.Shop == null)
             //{
-          
-                //Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
-                //if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
-                //{
 
-                //int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
-                //if (newItem.Description != null)
-                //{
-                //    shop.Items[index].Description = newItem.Description;
-                //}
-                //if (newItem.Name != null)
-                //{
-                //    shop.Items[index].Name = newItem.Name;
-                //}
-                //if (newItem.Price != null)
-                //{
-                //    shop.Items[index].Price = (double)newItem.Price;
-                //}
-                //if (newItem.Picture != null)
-                //{
-                //    this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
-                //    shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
-                //}
-                //if (newItem.Tags != null)
-                //{
-                //    shop.Items[index].Tags = newItem.Tags;
-                //}
-                //this.Service.UpdateItem(shop.ID, shop.Items[index]);
-                //return Ok();
-                //}
-                //else
-                //{
-                //    return BadRequest(new { message = "Shop does not have this item." });
-                //}
+            //Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
+            //if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
+            //{
+
+            //int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
+            //if (newItem.Description != null)
+            //{
+            //    shop.Items[index].Description = newItem.Description;
+            //}
+            //if (newItem.Name != null)
+            //{
+            //    shop.Items[index].Name = newItem.Name;
+            //}
+            //if (newItem.Price != null)
+            //{
+            //    shop.Items[index].Price = (double)newItem.Price;
+            //}
+            //if (newItem.Picture != null)
+            //{
+            //    this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
+            //    shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
+            //}
+            //if (newItem.Tags != null)
+            //{
+            //    shop.Items[index].Tags = newItem.Tags;
+            //}
+            //this.Service.UpdateItem(shop.ID, shop.Items[index]);
+            //return Ok();
+            //}
+            //else
+            //{
+            //    return BadRequest(new { message = "Shop does not have this item." });
+            //}
             //}
             //else
             //{
             //    return BadRequest(new { message = "User does not have shop." });
             //}
+            return Ok();
         }
     
 

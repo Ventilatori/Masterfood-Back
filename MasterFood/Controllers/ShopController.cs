@@ -97,7 +97,7 @@ namespace MasterFood.Controllers
             User user = this.Service.GetUser(null, data.UserName);
             if (user != null)
             {
-                return BadRequest(new { message = "Korisnik vec postoji." });
+                return BadRequest(new { message = "User already exists." });
             }
             byte[] password, salt;
             this.Service.CreatePassword(out password, out salt, data.Password);

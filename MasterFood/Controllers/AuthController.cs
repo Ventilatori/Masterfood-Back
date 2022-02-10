@@ -37,7 +37,7 @@ namespace MasterFood.Controllers
             User user = this.Service.GetUser(null, request.UserName);
             if (user != null)
             {
-                return BadRequest(new { message = "Korisnik vec postoji." });
+                return BadRequest(new { message = "User already exists." });
             }
             byte[] password, salt;
             this.Service.CreatePassword(out password, out salt, request.Password);
@@ -60,11 +60,11 @@ namespace MasterFood.Controllers
             User user = this.Service.GetUser(null, request.UserName);
             if (user == null)
             {
-                return BadRequest(new { message = "Korisnik ne postoji." });
+                return BadRequest(new { message = "User does not exist." });
             }
             if (!this.Service.CheckPassword(user.Password, user.Salt, request.Password))
             {
-                return BadRequest(new { message = "Pogresna sifra." });
+                return BadRequest(new { message = "Wrong password." });
             }
             this.Service.LogUser(user.ID, true);
             LogInResponse response = new LogInResponse

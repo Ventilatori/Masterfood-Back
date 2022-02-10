@@ -74,7 +74,7 @@ namespace MasterFood.Service
         }
         public string AddImage(IFormFile? image, IUserService.ImageType img_type = IUserService.ImageType.Item)
         {
-            string folderPath = "Images\\"+ img_type.ToString();
+            string folderPath = "Images/"+ img_type.ToString();
             string uploadsFolder = Path.Combine(Environment.WebRootPath, folderPath);
             string file_name;
             if (image != null)

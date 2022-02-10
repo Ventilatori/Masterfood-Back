@@ -43,7 +43,6 @@ namespace MasterFood.Controllers
         {
             var shops = await  Shops.Find(new BsonDocument()).ToListAsync();
             return Ok(shops);
-
         }
 
         [HttpGet]
@@ -52,11 +51,21 @@ namespace MasterFood.Controllers
 
         [HttpGet]
         [Route("Shop/{id}")]
-        public async Task<IActionResult> GetShopByID() { return Ok(); }
+        public async Task<IActionResult> GetShopByID(string id) 
+        {
+            Shop shop = this.Service.GetShop(id);
+            return Ok(shop);
+        }
 
         [HttpPut]
         [Route("Shop/{id}")]
-        public async Task<IActionResult> UpdateShop() { return Ok(); }
+        public async Task<IActionResult> UpdateShop(string id, [FromBody] Shop updatedS) 
+        {
+            var filter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
+            var shop = Shops.Find(filter).First();
+            await Shops.ReplaceOneAsync(filter, updatedS);
+            return Ok(); 
+        }
 
         [HttpPost]
         [Route("Shop")]
@@ -88,13 +97,9 @@ namespace MasterFood.Controllers
         }
         #region shop item methods
 
-        //[HttpPost]
-        //[Route("Shop/{id}/Item")]
-        //public async Task<IActionResult> AddItem() 
-        //{
-        //    var filter = Builders<T>.Filter.Eq("ID", id);
-        //    return Item.Find(filter).First();
-        //}
+        [HttpPost]
+        [Route("Shop/{id}/Item")]
+        public async Task<IActionResult> AddItem(){return Ok();}
 
         [HttpPut]
         [Route("Shop/{id}/Item")]
@@ -119,8 +124,6 @@ namespace MasterFood.Controllers
         [Route("Shop/{id}/Order")]
         public async Task<IActionResult> GetShopOrders(string id) 
         {
-            //var filterS = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
-            //var shop = Shops.Find(filterS).First();
 
             //var filter = Builders<Order>.Filter.Eq("Shop.ID", ObjectId.Parse(id));
             //var shop = Shops.Find(filter).First();

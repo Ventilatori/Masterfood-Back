@@ -60,7 +60,7 @@ namespace MasterFood.Controllers
 
         [HttpPut]
         [Route("Shop/{id}")]
-        public async Task<IActionResult> UpdateShop(string id, [FromBody] ShopRequest changes) 
+        public async Task<IActionResult> UpdateShop(string id, [FromBody] ShopRequest changes)  // TODO fix fromform
         {
             //var filter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
             //var shop = Shops.Find(filter).First();
@@ -194,7 +194,7 @@ namespace MasterFood.Controllers
                 Picture = img_path,
                 Price = (double)newItem.Price,
                 Amount = 1,
-                Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
+                //Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
                 Tags = null
             };
             Shop shop = this.Service.GetShop(id);
@@ -212,51 +212,48 @@ namespace MasterFood.Controllers
         }
 
         [HttpPut]
-        [Route("Shop/{shopid}/Item/{itemid}")]
+        [Route("Shop/{shopid}/Item/{itemid}")] // TODO: fix method
         public async Task<IActionResult> UpdateItem(string shopid, string itemid, [FromForm] ItemRequest newItem) 
         {
-            //TODO: turn on auth
+            //TODO: turn on auth 
 
             //User user = this.Service.GetUser(null, (string)HttpContext.Items["UserName"]);
             //if (user.Shop == null)
             //{
           
-                Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
-                if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
-                {
-                    int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
-                    if (newItem.Description != null)
-                    {
-                        shop.Items[index].Description = newItem.Description;
-                    }
-                    if (newItem.Name != null)
-                    {
-                        shop.Items[index].Name = newItem.Name;
-                    }
-                    if (newItem.Price != null)
-                    {
-                        shop.Items[index].Price = (double)newItem.Price;
-                    }
-                    if (newItem.Price != null)
-                    {
-                        this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
-                        shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
-                    }
-                    if (newItem.Tags != null)
-                    {
-                        if (shop.Items[index].Tags != null)
-                        {
-                            shop.Items[index].Tags = new List<string>();
-                        }
-                        shop.Items[index].Tags = shop.Items[index].Tags.Union(newItem.Tags).ToList();
-                    }
-                    this.Service.UpdateItem(shop.ID, shop.Items[index]);
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest(new { message = "Shop does not have this item." });
-                }
+                //Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
+                //if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
+                //{
+
+                //int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
+                //if (newItem.Description != null)
+                //{
+                //    shop.Items[index].Description = newItem.Description;
+                //}
+                //if (newItem.Name != null)
+                //{
+                //    shop.Items[index].Name = newItem.Name;
+                //}
+                //if (newItem.Price != null)
+                //{
+                //    shop.Items[index].Price = (double)newItem.Price;
+                //}
+                //if (newItem.Picture != null)
+                //{
+                //    this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
+                //    shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
+                //}
+                //if (newItem.Tags != null)
+                //{
+                //    shop.Items[index].Tags = newItem.Tags;
+                //}
+                //this.Service.UpdateItem(shop.ID, shop.Items[index]);
+                //return Ok();
+                //}
+                //else
+                //{
+                //    return BadRequest(new { message = "Shop does not have this item." });
+                //}
             //}
             //else
             //{

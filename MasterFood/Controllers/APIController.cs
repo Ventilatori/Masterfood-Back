@@ -147,7 +147,7 @@ namespace MasterFood.Controllers
                 Picture = img_path,
                 Price = (double)newItem.Price,
                 Amount = 1,
-                Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
+               // Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
                 Tags = null
             };
             Shop shop = this.Service.GetShop(id);

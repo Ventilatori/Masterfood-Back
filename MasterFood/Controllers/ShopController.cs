@@ -1,4 +1,5 @@
 ﻿using MasterFood.Models;
+using MasterFood.RequestResponse;
 using MasterFood.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -69,7 +70,70 @@ namespace MasterFood.Controllers
 
         [HttpPost]
         [Route("Shop")]
-        public async Task<IActionResult> CreateShop() { return Ok(); }
+        public async Task<IActionResult> CreateShop([FromForm] ShopCreateRequest data) 
+        {
+
+            //create owner
+            User user = this.Service.GetUser(null, data.UserName);
+            if (user != null)
+            {
+                return BadRequest(new { message = "Korisnik vec postoji." });
+            }
+            byte[] password, salt;
+            this.Service.CreatePassword(out password, out salt, data.Password);
+            user = new User
+            {
+                UserName = data.UserName,
+                Password = password,
+                Salt = salt,
+                Online = false,
+                Shop = null
+            };
+            this.Service.CreateUser(user);
+
+            //create shop
+            User userr = this.Service.GetUser(null, data.UserName);
+            if (user.Shop != null)
+            {
+                return BadRequest(new { message = "Korisnik vec ima prodavnicu." });
+            }
+
+            string img_path;
+            if (data.Picture != null)
+            {
+                img_path = this.Service.AddImage(data.Picture, IUserService.ImageType.Shop);
+            }
+            else
+            {
+                img_path = "default.png";
+            }
+            //List<string> tags = null;
+            //if (data.Tags != null)
+            //{
+            //    tags = new List<string>(data.Tags);
+            //}
+            Shop shop = new Shop
+            {
+                Name = data.Name,
+                Description = data.Description,
+                Picture = img_path,
+                Tags = data.Tags,
+                OrderCount = 0,
+                Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
+                Items = null,
+                Orders = null
+            };
+
+            //store shop
+
+
+            var userFilter = Builders<User>.Filter.Eq("ID", userr.ID);
+            this.Shops.InsertOne(shop);
+            user.Shop = new MongoDBRef("Shop", BsonValue.Create(shop.ID));
+            //user.Shop = new MongoDBRef("Shop", BsonValue.Create(shop.ID));
+            this.Users.ReplaceOne(userFilter, user);
+            return Ok();
+        }
 
         [HttpDelete]
         [Route("Shop/{id}")]

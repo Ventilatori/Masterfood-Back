@@ -88,7 +88,7 @@ namespace MasterFood.Controllers
             }
             if (changes.Tags != null)
             {
-                shop.Tags = shop.Tags.Union(changes.Tags).ToList();
+                //shop.Tags = shop.Tags.Union(changes.Tags).ToList();  ADAPTIRAJ JE SU SAD TAGOVI STRINGS
             }
             this.Service.UpdateShop(shop);
             return Ok();
@@ -124,7 +124,7 @@ namespace MasterFood.Controllers
                 Name = newShop.Name,
                 Description = newShop.Description,
                 Picture = img_path,
-                Tags = tags,
+                //Tags = tags, ADAPTIRAJ JER SU SADA TAGOVI STRING
                 OrderCount = 0,
                 Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
                 Items = null,

@@ -850,3 +850,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+#folders
+*.MasterFood/wwwroot/Images/*

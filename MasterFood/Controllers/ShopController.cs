@@ -87,6 +87,7 @@ namespace MasterFood.Controllers
                 var tagList = tagArray.ToList<string>();
                 shop.Tags = tagList;
             }
+
             this.Service.UpdateShop(shop);
             return Ok(); 
         }
@@ -95,13 +96,13 @@ namespace MasterFood.Controllers
         [Route("Shop")]
         public async Task<IActionResult> CreateShop([FromForm] ShopCreateRequest data) 
         {
-
             //create owner
             User user = this.Service.GetUser(null, data.UserName);
             if (user != null)
             {
                 return BadRequest(new { message = "User already exists." });
             }
+
             byte[] password, salt;
             this.Service.CreatePassword(out password, out salt, data.Password);
             user = new User
@@ -130,16 +131,10 @@ namespace MasterFood.Controllers
             {
                 img_path = "default.png";
             }
+
             List<string> tagList = new List<string>(); 
             if (data.Tags != null)
-            {
-           
-                string[] tagArray = data.Tags.Split(',');
-                tagList = tagArray.ToList<string>();
-               
-            }
-
-           
+                tagList = data.Tags.Split(',').ToList<string>();
 
             Shop shop = new Shop
             {
@@ -150,12 +145,9 @@ namespace MasterFood.Controllers
                 OrderCount = 0,
                 Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
                 Items = null,
-              //  Orders = null
             };
 
             //store shop
-
-
             var userFilter = Builders<User>.Filter.Eq("ID", userr.ID);
             this.Shops.InsertOne(shop);
             user.Shop = new MongoDBRef("Shop", BsonValue.Create(shop.ID));
@@ -168,14 +160,15 @@ namespace MasterFood.Controllers
         [Route("Shop/{id}")]
         public async Task<IActionResult> DeleteShop(string id)
         {
-            string username = (string)HttpContext.Items["UserName"];
-            User user = this.Service.GetUser(null, username);
-
             var filterS = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
             var shop =  Shops.Find(filterS).First();
 
             var owner = Users.Find<User>(u => u.Shop.Id == shop.ID).First();
             var filterU = Builders<User>.Filter.Eq("ID", owner.ID);
+
+            this.Service.DeleteImage(shop.Picture, IUserService.ImageType.Shop);
+            foreach(Item item in shop.Items)
+                this.Service.DeleteImage(item.Picture, IUserService.ImageType.Item);
 
             Shops.DeleteOne(filterS);
             Users.DeleteOne(filterU);
@@ -190,7 +183,7 @@ namespace MasterFood.Controllers
         }
         #region shop item methods
 
-        [HttpPost] // TODO: do we really need ref to shop???
+        [HttpPost]
         [Route("Shop/{id}/Item")]
         public async Task<IActionResult> AddItem(string id, [FromForm] ItemRequest newItem)
         {
@@ -198,24 +191,18 @@ namespace MasterFood.Controllers
 
             List<string> tagList = new List<string>();
             if (newItem.Tags != null)
-            {
-
-                string[] tagArray = newItem.Tags.Split(',');
-                tagList = tagArray.ToList<string>();
-
-            }
+                tagList = newItem.Tags.Split(',').ToList<string>();
 
             Item item = new Item
             {
-               
-            Name = newItem.Name,
+                Name = newItem.Name,
                 Description = newItem.Description,
                 Picture = img_path,
                 Price = (double)newItem.Price,
                 Amount = 1,
-                //Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
                 Tags = tagList
             };
+
             Shop shop = this.Service.GetShop(id);
             if (shop.Items == null)
             {
@@ -225,6 +212,7 @@ namespace MasterFood.Controllers
             {
                 return BadRequest(new { message = "Prodavnica vec ima ovaj proizvod." });
             }
+
             shop.Items.Add(item);
             this.Service.UpdateShop(shop);
             return Ok();
@@ -236,65 +224,57 @@ namespace MasterFood.Controllers
         {
             //TODO: turn on auth 
 
-            User user = this.Service.GetUser(null, (string)HttpContext.Items["UserName"]);
-            if (user.Shop == null)
+            Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
+            if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
             {
-
-                Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
-                if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
+                int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
+                if (newItem.Description != null)
                 {
-
-                    int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
-                    if (newItem.Description != null)
-                    {
-                        shop.Items[index].Description = newItem.Description;
-                    }
-                    if (newItem.Name != null)
-                    {
-                        shop.Items[index].Name = newItem.Name;
-                    }
-                    if (newItem.Price != null)
-                    {
-                        shop.Items[index].Price = (double)newItem.Price;
-                    }
-                    if (newItem.Picture != null)
-                    {
-                        this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
-                        shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
-                    }
-                    List<string> tagList = new List<string>();
-                    if (newItem.Tags != null)
-                    {
-
-                        string[] tagArray = newItem.Tags.Split(',');
-                        tagList = tagArray.ToList<string>();
-
-                    }
-                    if (newItem.Tags != null)
-                    {
-                       // shop.Items[index].Tags = newItem.Tags;
-                    }
-                    this.Service.UpdateItem(shop.ID, shop.Items[index]);
-                    return Ok();
+                    shop.Items[index].Description = newItem.Description;
                 }
-                else
+                if (newItem.Name != null)
                 {
-                    return BadRequest(new { message = "Shop does not have this item." });
+                    shop.Items[index].Name = newItem.Name;
                 }
+                if (newItem.Price != null)
+                {
+                    shop.Items[index].Price = (double)newItem.Price;
+                }
+                if (newItem.Picture != null)
+                {
+                    this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
+                    shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
+                }
+                if (newItem.Tags != null)
+                {
+                    shop.Items[index].Tags = newItem.Tags.Split(',').ToList<string>();
+                }
+                this.Service.UpdateItem(shop.ID, shop.Items[index]);
+                return Ok();
             }
             else
             {
-                return BadRequest(new { message = "User does not have shop." });
+                return BadRequest(new { message = "Shop does not have this item." });
             }
-            return Ok();
         }
     
-
-
         [HttpDelete]
-        [Route("Shop/{id}/Item")]
-        public async Task<IActionResult> DeleteItem() { return Ok(); }
+        [Route("Shop/{shopid}/Item/{itemid}")]
+        public async Task<IActionResult> DeleteItem(string shopid, string itemid) 
+        { 
+            //TODO: turn on auth 
 
+            Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
+            if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
+            {
+                this.Service.DeleteItem(shop.ID, itemid);
+                return Ok(); 
+            }
+            else
+            {
+                return BadRequest(new { message = "Shop does not have this item." });
+            }
+        }
 
         #endregion
 
@@ -306,7 +286,6 @@ namespace MasterFood.Controllers
         [Route("Shop/{id}/Order")]
         public async Task<IActionResult> GetShopOrders(string id) 
         {
-
             var sfilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(id));
             var orders = OrderLists.Find(sfilter).First();
             return Ok(orders);
@@ -328,7 +307,6 @@ namespace MasterFood.Controllers
             var shopOrderList = OrderListsExists ? OrderLists.Find(ofilter).First() : null ;
             if (shopOrderList == null)
             {
-  
                 OrderList ol = new OrderList();
                 ol.ID = shopID;
                 ol.Active = new List<Order>();
@@ -346,17 +324,16 @@ namespace MasterFood.Controllers
         }
 
         [HttpPut]
-        [Route("Shop/{ShopID}/Order/{OrderID}/Complete")] 
+        [Route("Shop/{ShopID}/Order/{OrderID}/Complete")]
         public async Task<IActionResult> CompleteOrder(string ShopID, string OrderID)
         {
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
-            if (!OrderListsExists) return Ok("There are no orders");
+            if (!OrderListsExists) return BadRequest("Order not found");
 
             var ofilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(ShopID));
             var orderlist = OrderLists.Find(ofilter).First();
 
-            Order myOrder;
-            myOrder = orderlist.Active.First(o => o.ID == OrderID);
+            Order myOrder = orderlist.Active.First(o => o.ID == OrderID);
             if (myOrder != null)
             {
                 if (orderlist.History == null) 
@@ -369,9 +346,25 @@ namespace MasterFood.Controllers
             return Ok();
         }
 
-        //[HttpDelete]
-        //[Route("Shop/{id}/Order/OrderID")]
-        //public async Task<IActionResult> AbortOrder() { return Ok(); }
+        [HttpDelete]
+        [Route("Shop/{ShopID}/Order/{OrderID}/Abort")]
+        public async Task<IActionResult> AbortOrder(string ShopID, string OrderID)
+        {
+            bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
+            if (!OrderListsExists) return BadRequest("Order not found");
+
+            var ofilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(ShopID));
+            var orderlist = OrderLists.Find(ofilter).First();
+
+            Order myOrder = orderlist.Active.First(o => o.ID == OrderID);
+            if (myOrder != null)
+            {
+                orderlist.Active.Remove(myOrder);
+            }
+
+            OrderLists.ReplaceOne(ofilter, orderlist);
+            return Ok();
+        }
 
 
         #endregion

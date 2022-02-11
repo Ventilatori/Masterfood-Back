@@ -46,6 +46,7 @@ namespace MasterFood.Service
         Shop GetShop(string id);
         void UpdateShop(Shop shop);
         void UpdateItem(string id, Item item);
+        void DeleteItem(string id, string itemid);
         User? GetUser(string? id, string username = "");
         void StoreShop(Shop shop, User user);
         void CreateUser(User new_user = null);
@@ -95,24 +96,14 @@ namespace MasterFood.Service
         {
             if(!String.Equals(image, "default.png"))
             {
-                string folderPath = "Images\\" + img_type.ToString();
+                string folderPath = "Images/" + img_type.ToString();
                 string uploadsFolder = Path.Combine(Environment.WebRootPath, folderPath);
                 string filePath = Path.Combine(uploadsFolder, image);
 
                 if (System.IO.File.Exists(filePath))
-                {
                     System.IO.File.Delete(filePath);
-                    return true;
-                }
-                else
-                {
-                    return true;
-                }
             }
-            else
-            {
-                return true;
-            }
+            return true;
         }
         public string GenerateToken(string id)
         {
@@ -249,6 +240,13 @@ namespace MasterFood.Service
                 //(list[-1] znaci isto sto i list.$, a to znaci da se selektuje element cija je pozicija varijabilna, tj moze biti na bilo kojoj poziciji)
 
             this.Shops.UpdateOne(filter, update);
+        }
+
+        public void DeleteItem(string shopid, string itemid) {
+            var filterShop = Builders<Shop>.Filter.Eq(s => s.ID, shopid);
+            var filterItem = Builders<Item>.Filter.Eq(s => s.ID, itemid);
+            var update = Builders<Shop>.Update.PullFilter(s => s.Items, filterItem);
+            this.Shops.UpdateOne(filterShop, update);
         }
 
         public void StoreShop(Shop shop, User user)

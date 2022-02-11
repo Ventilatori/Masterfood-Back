@@ -168,14 +168,15 @@ namespace MasterFood.Controllers
         [Route("Shop/{id}")]
         public async Task<IActionResult> DeleteShop(string id)
         {
-            string username = (string)HttpContext.Items["UserName"];
-            User user = this.Service.GetUser(null, username);
-
             var filterS = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
             var shop =  Shops.Find(filterS).First();
 
             var owner = Users.Find<User>(u => u.Shop.Id == shop.ID).First();
             var filterU = Builders<User>.Filter.Eq("ID", owner.ID);
+
+            this.Service.DeleteImage(shop.Picture, IUserService.ImageType.Shop);
+            foreach(Item item in shop.Items)
+                this.Service.DeleteImage(item.Picture, IUserService.ImageType.Item);
 
             Shops.DeleteOne(filterS);
             Users.DeleteOne(filterU);
@@ -236,56 +237,59 @@ namespace MasterFood.Controllers
         {
             //TODO: turn on auth 
 
-            User user = this.Service.GetUser(null, (string)HttpContext.Items["UserName"]);
-            if (user.Shop == null)
+            Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
+            if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
             {
-
-                Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
-                if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
+                int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
+                if (newItem.Description != null)
                 {
-
-                    int index = shop.Items.FindIndex(x => String.Equals(x.ID.ToString(), itemid));
-                    if (newItem.Description != null)
-                    {
-                        shop.Items[index].Description = newItem.Description;
-                    }
-                    if (newItem.Name != null)
-                    {
-                        shop.Items[index].Name = newItem.Name;
-                    }
-                    if (newItem.Price != null)
-                    {
-                        shop.Items[index].Price = (double)newItem.Price;
-                    }
-                    if (newItem.Picture != null)
-                    {
-                        this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
-                        shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
-                    }
-                    if (newItem.Tags != null)
-                    {
-                        shop.Items[index].Tags = newItem.Tags.Split(',').ToList<string>();
-                    }
-                    this.Service.UpdateItem(shop.ID, shop.Items[index]);
-                    return Ok();
+                    shop.Items[index].Description = newItem.Description;
                 }
-                else
+                if (newItem.Name != null)
                 {
-                    return BadRequest(new { message = "Shop does not have this item." });
+                    shop.Items[index].Name = newItem.Name;
                 }
+                if (newItem.Price != null)
+                {
+                    shop.Items[index].Price = (double)newItem.Price;
+                }
+                if (newItem.Picture != null)
+                {
+                    this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
+                    shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
+                }
+                if (newItem.Tags != null)
+                {
+                    shop.Items[index].Tags = newItem.Tags.Split(',').ToList<string>();
+                }
+                this.Service.UpdateItem(shop.ID, shop.Items[index]);
+                return Ok();
             }
             else
             {
-                return BadRequest(new { message = "User does not have shop." });
+                return BadRequest(new { message = "Shop does not have this item." });
             }
-            return Ok();
         }
     
 
 
         [HttpDelete]
-        [Route("Shop/{id}/Item")]
-        public async Task<IActionResult> DeleteItem() { return Ok(); }
+        [Route("Shop/{shopid}/Item/{itemid}")]
+        public async Task<IActionResult> DeleteItem(string shopid, string itemid) 
+        { 
+            //TODO: turn on auth 
+
+            Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
+            if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
+            {
+                this.Service.DeleteItem(shop.ID, itemid);
+                return Ok(); 
+            }
+            else
+            {
+                return BadRequest(new { message = "Shop does not have this item." });
+            }
+        }
 
 
         #endregion

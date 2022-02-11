@@ -44,13 +44,27 @@ namespace MasterFood.Controllers
         [Route("Shop")] //return all shops
         public async Task<IActionResult> GetShops() 
         {
-            var shops = await  Shops.Find(new BsonDocument()).ToListAsync();
+            var shops = await Shops.Find(new BsonDocument()).ToListAsync();
             return Ok(shops);
         }
 
         [HttpGet]
         [Route("Shop/Popular")] //return popular 6
-        public async Task<IActionResult> GetPopularShops() { return Ok(); }
+        public async Task<IActionResult> GetPopularShops() { 
+            var orderLists = await this.OrderLists.Aggregate()
+                .Project(ol => new {
+                    ol.ID,
+                    OrderCount = (ol.Active != null? ol.Active.Count : 0) + 
+                                 (ol.History != null? ol.History.Count : 0)
+                })
+                .SortByDescending(ol => ol.OrderCount)
+                .Limit(6)
+                .ToListAsync();
+            var shopIDs = orderLists.Select(ol => ol.ID);
+            var filter = Builders<Shop>.Filter.In("ID", shopIDs);
+            var shops = await Shops.Find(filter).ToListAsync();
+            return Ok(shops); 
+        }
 
         [HttpGet]
         [Route("Shop/{id}")]
@@ -316,8 +330,11 @@ namespace MasterFood.Controllers
         public async Task<IActionResult> GetShopOrders(string id) 
         {
             var sfilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(id));
-            var orders = OrderLists.Find(sfilter).First();
-            return Ok(orders);
+            var orders = OrderLists.Find(sfilter).FirstOrDefault();
+            if(orders == null)
+                return Ok(new OrderList());
+            else
+                return Ok(orders);
         }
 
         [HttpPost]
@@ -362,7 +379,7 @@ namespace MasterFood.Controllers
             var ofilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(ShopID));
             var orderlist = OrderLists.Find(ofilter).First();
 
-            Order myOrder = orderlist.Active.First(o => o.ID == OrderID);
+            Order myOrder = orderlist.Active.FirstOrDefault(o => o.ID == OrderID);
             if (myOrder != null)
             {
                 if (orderlist.History == null) 

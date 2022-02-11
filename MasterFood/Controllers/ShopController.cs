@@ -346,7 +346,7 @@ namespace MasterFood.Controllers
         }
 
         [HttpPut]
-        [Route("Shop/{ShopID}/Order/{OrderID}/Complete")] //TODO: not tested, postman uopste ne gadja ovu metodu
+        [Route("Shop/{ShopID}/Order/{OrderID}/Complete")] 
         public async Task<IActionResult> CompleteOrder(string ShopID, string OrderID)
         {
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);

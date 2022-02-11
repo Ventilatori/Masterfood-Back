@@ -304,7 +304,7 @@ namespace MasterFood.Controllers
 
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
 
-            var shopOrderList = OrderListsExists ? OrderLists.Find(ofilter).First() : null ;
+            var shopOrderList = OrderListsExists ? OrderLists.Find(ofilter).FirstOrDefault() : null ;
             if (shopOrderList == null)
             {
                 OrderList ol = new OrderList();
@@ -366,7 +366,28 @@ namespace MasterFood.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Route("/Shop/PopularTags")]
+        public async Task<IActionResult> GetPopular()
+        {
+            List<string> alltags = new List<string>();
+            var tags = Shops.Aggregate()
 
+                .Group(s => s.Tags,
+                    z => new
+                    {
+                        Taglist = z.Key
+                    }
+                )
+                .ToList()
+                .SelectMany(t => t.Taglist)
+                .GroupBy(vl => vl)
+                .Select(x => new { Name = x.Key, Count = x.Count() })
+                .OrderByDescending(z => z.Count)
+                .Take(12);
+                
+            return Ok(tags);
+        }
         #endregion
 
 

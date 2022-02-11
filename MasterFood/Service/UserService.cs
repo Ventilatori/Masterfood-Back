@@ -51,6 +51,8 @@ namespace MasterFood.Service
         void CreateUser(User new_user = null);
         void LogUser(string id, bool status);
 
+        public bool CollectionExists(string name);
+
     }
 
     public class UserService : IUserService
@@ -306,6 +308,13 @@ namespace MasterFood.Service
             collection.DeleteOne(filter);
         }
 
+        public bool CollectionExists(string name)
+        {
+
+            var filterr = new BsonDocument("name", name);
+            var options = new ListCollectionNamesOptions { Filter = filterr };
+            return database.ListCollectionNames(options).Any();
+        }
    
 
     }

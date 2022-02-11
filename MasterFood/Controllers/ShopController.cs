@@ -323,10 +323,7 @@ namespace MasterFood.Controllers
             var ofilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(shopID));
             newOrder.ID = ObjectId.GenerateNewId().ToString();
 
-            //check check if OrderLists collection exists
-            var filterr = new BsonDocument("name", dbSettings.Value.OrderCollectionName);
-            var options = new ListCollectionNamesOptions { Filter = filterr };
-            bool OrderListsExists = database.ListCollectionNames(options).Any();
+            bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
 
             var shopOrderList = OrderListsExists ? OrderLists.Find(ofilter).First() : null ;
             if (shopOrderList == null)
@@ -334,14 +331,14 @@ namespace MasterFood.Controllers
   
                 OrderList ol = new OrderList();
                 ol.ID = shopID;
-                ol.Orders = new List<Order>();
-              
-                ol.Orders.Add(newOrder);
+                ol.Active = new List<Order>();
+
+                ol.Active.Add(newOrder);
                 OrderLists.InsertOne(ol);
             }
             else
             {
-                shopOrderList.Orders.Add(newOrder);
+                shopOrderList.Active.Add(newOrder);
                 OrderLists.ReplaceOne(ofilter, shopOrderList);
             }
            
@@ -349,8 +346,32 @@ namespace MasterFood.Controllers
         }
 
         [HttpPut]
-        [Route("Shop/{id}/Order/OrderID")]
-        public async Task<IActionResult> CompleteOrder() { return Ok(); }
+        [Route("Shop/{ShopID}/Order/{OrderID}/Complete")] //TODO: not tested, postman uopste ne gadja ovu metodu
+        public async Task<IActionResult> CompleteOrder(string ShopID, string OrderID)
+        {
+            bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
+            if (!OrderListsExists) return Ok("There are no orders");
+
+            var ofilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(ShopID));
+            var orderlist = OrderLists.Find(ofilter).First();
+
+            Order myOrder;
+            myOrder = orderlist.Active.First(o => o.ID == OrderID);
+            if (myOrder != null)
+            {
+                if (orderlist.History == null) 
+                    orderlist.History = new List<Order>();
+                orderlist.History.Add(myOrder);
+                orderlist.Active.Remove(myOrder);
+            }
+
+            OrderLists.ReplaceOne(ofilter, orderlist);
+            return Ok();
+        }
+
+        //[HttpDelete]
+        //[Route("Shop/{id}/Order/OrderID")]
+        //public async Task<IActionResult> AbortOrder() { return Ok(); }
 
 
         #endregion

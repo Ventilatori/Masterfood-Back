@@ -12,6 +12,7 @@ namespace MasterFood.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string ID { get; set; }
-        public List<Order> Orders{get;set;}
+        public List<Order> Active {get;set;}
+        public List<Order> History { get; set; }
     }
 }

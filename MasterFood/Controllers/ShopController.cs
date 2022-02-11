@@ -168,7 +168,7 @@ namespace MasterFood.Controllers
             user.Shop = new MongoDBRef("Shop", BsonValue.Create(shop.ID));
             //user.Shop = new MongoDBRef("Shop", BsonValue.Create(shop.ID));
             this.Users.ReplaceOne(userFilter, user);
-            return Ok();
+            return Ok(new { OwnerID = user.ID, ShopID = shop.ID });
         }
 
         [HttpDelete]
@@ -187,13 +187,6 @@ namespace MasterFood.Controllers
 
             Shops.DeleteOne(filterS);
             Users.DeleteOne(filterU);
-            return Ok();
-        }
-
-        [HttpGet]
-        [Route("Shop/Tags")]
-        public async Task<IActionResult> GetShopTags() 
-        {
             return Ok();
         }
 
@@ -258,7 +251,7 @@ namespace MasterFood.Controllers
 
             shop.Items.Add(item);
             this.Service.UpdateShop(shop);
-            return Ok();
+            return Ok(new { ItemID = item.ID});
         }
 
         [HttpPut]
@@ -366,7 +359,7 @@ namespace MasterFood.Controllers
                 OrderLists.ReplaceOne(ofilter, shopOrderList);
             }
            
-            return Ok(); 
+            return Ok(new {OrderID = newOrder.ID }); 
         }
 
         [HttpPut]
@@ -434,6 +427,29 @@ namespace MasterFood.Controllers
                 
             return Ok(tags);
         }
+
+        [HttpGet]
+        [Route("/Shop/Tags")]
+        public async Task<IActionResult> GetAllShopTags()
+        {
+            List<string> alltags = new List<string>();
+            var tags = Shops.Aggregate()
+
+                .Group(s => s.Tags,
+                    z => new
+                    {
+                        Taglist = z.Key
+                    }
+                )
+                .ToList()
+                .SelectMany(t => t.Taglist)
+                .GroupBy(vl => vl)
+                .Select(x => new { Name = x.Key }).Select(y => y.Name);
+                
+            return Ok(tags);
+        }
+
+
         #endregion
 
 

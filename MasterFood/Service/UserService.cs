@@ -34,6 +34,7 @@ namespace MasterFood.Service
             Shop,
             Admin
         };
+
         string AddImage(IFormFile? image, ImageType img_type = IUserService.ImageType.Item);
         bool DeleteImage(string image, IUserService.ImageType img_type);
         string GenerateToken(string id);
@@ -75,6 +76,7 @@ namespace MasterFood.Service
             this.Orders = database.GetCollection<Order>(dbSettings.Value.OrderCollectionName);
             this.Users = database.GetCollection<User>(dbSettings.Value.UserCollectionName);
         }
+
         public string AddImage(IFormFile? image, IUserService.ImageType img_type = IUserService.ImageType.Item)
         {
             string folderPath = "Images/"+ img_type.ToString();
@@ -92,6 +94,7 @@ namespace MasterFood.Service
             }
             return file_name;
         }
+        
         public bool DeleteImage(string image, IUserService.ImageType img_type)
         {
             if(!String.Equals(image, "default.png"))
@@ -105,6 +108,7 @@ namespace MasterFood.Service
             }
             return true;
         }
+
         public string GenerateToken(string id)
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -118,6 +122,7 @@ namespace MasterFood.Service
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
         public (string username, IUserService.AccountType type)? CheckToken(string token)
         {
             if (!String.IsNullOrEmpty(token))
@@ -150,6 +155,7 @@ namespace MasterFood.Service
                 return null;
             }
         }
+        
         public bool CheckPassword(byte[] password, byte[] salt, string password_string)
         {
             HMACSHA512 hashObj = new HMACSHA512(salt);
@@ -165,6 +171,7 @@ namespace MasterFood.Service
             }
             return true;
         }
+
         //CreatePassword(out byte[] password, out byte[] salt, string password_string)
         public void CreatePassword(out byte[] password, out byte[] salt, string password_string)
         {
@@ -173,6 +180,7 @@ namespace MasterFood.Service
             byte[] byte_password = Encoding.UTF8.GetBytes(password_string);
             password = hashObj.ComputeHash(byte_password);
         }
+
         public User FindUser(string id)
         {
             return this.Users.Find(u => u.ID == id).FirstOrDefaultAsync().Result;
@@ -223,6 +231,7 @@ namespace MasterFood.Service
             FilterDefinition<Shop> filter = Builders<Shop>.Filter.Eq(s => s.ID, shop.ID);
             this.Shops.ReplaceOne(filter, shop);
         }
+
         public void UpdateItem(string id, Item item)
         {
             //ili umesto 1. Filter.And(), ugnezdene u njemu mozes da vezes sa & (ne &&)
@@ -313,7 +322,5 @@ namespace MasterFood.Service
             var options = new ListCollectionNamesOptions { Filter = filterr };
             return database.ListCollectionNames(options).Any();
         }
-   
-
     }
 }

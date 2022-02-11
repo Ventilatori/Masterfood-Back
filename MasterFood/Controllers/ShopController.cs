@@ -87,6 +87,7 @@ namespace MasterFood.Controllers
                 var tagList = tagArray.ToList<string>();
                 shop.Tags = tagList;
             }
+
             this.Service.UpdateShop(shop);
             return Ok(); 
         }
@@ -95,13 +96,13 @@ namespace MasterFood.Controllers
         [Route("Shop")]
         public async Task<IActionResult> CreateShop([FromForm] ShopCreateRequest data) 
         {
-
             //create owner
             User user = this.Service.GetUser(null, data.UserName);
             if (user != null)
             {
                 return BadRequest(new { message = "User already exists." });
             }
+
             byte[] password, salt;
             this.Service.CreatePassword(out password, out salt, data.Password);
             user = new User
@@ -130,16 +131,10 @@ namespace MasterFood.Controllers
             {
                 img_path = "default.png";
             }
+
             List<string> tagList = new List<string>(); 
             if (data.Tags != null)
-            {
-           
-                string[] tagArray = data.Tags.Split(',');
-                tagList = tagArray.ToList<string>();
-               
-            }
-
-           
+                tagList = data.Tags.Split(',').ToList<string>();
 
             Shop shop = new Shop
             {
@@ -150,12 +145,9 @@ namespace MasterFood.Controllers
                 OrderCount = 0,
                 Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
                 Items = null,
-              //  Orders = null
             };
 
             //store shop
-
-
             var userFilter = Builders<User>.Filter.Eq("ID", userr.ID);
             this.Shops.InsertOne(shop);
             user.Shop = new MongoDBRef("Shop", BsonValue.Create(shop.ID));
@@ -191,7 +183,7 @@ namespace MasterFood.Controllers
         }
         #region shop item methods
 
-        [HttpPost] // TODO: do we really need ref to shop???
+        [HttpPost]
         [Route("Shop/{id}/Item")]
         public async Task<IActionResult> AddItem(string id, [FromForm] ItemRequest newItem)
         {
@@ -199,24 +191,18 @@ namespace MasterFood.Controllers
 
             List<string> tagList = new List<string>();
             if (newItem.Tags != null)
-            {
-
-                string[] tagArray = newItem.Tags.Split(',');
-                tagList = tagArray.ToList<string>();
-
-            }
+                tagList = newItem.Tags.Split(',').ToList<string>();
 
             Item item = new Item
             {
-               
-            Name = newItem.Name,
+                Name = newItem.Name,
                 Description = newItem.Description,
                 Picture = img_path,
                 Price = (double)newItem.Price,
                 Amount = 1,
-                //Shop = new MongoDBRef("Shop", BsonValue.Create(id)),
                 Tags = tagList
             };
+
             Shop shop = this.Service.GetShop(id);
             if (shop.Items == null)
             {
@@ -226,6 +212,7 @@ namespace MasterFood.Controllers
             {
                 return BadRequest(new { message = "Prodavnica vec ima ovaj proizvod." });
             }
+
             shop.Items.Add(item);
             this.Service.UpdateShop(shop);
             return Ok();
@@ -271,8 +258,6 @@ namespace MasterFood.Controllers
             }
         }
     
-
-
         [HttpDelete]
         [Route("Shop/{shopid}/Item/{itemid}")]
         public async Task<IActionResult> DeleteItem(string shopid, string itemid) 
@@ -291,7 +276,6 @@ namespace MasterFood.Controllers
             }
         }
 
-
         #endregion
 
         #endregion
@@ -302,7 +286,6 @@ namespace MasterFood.Controllers
         [Route("Shop/{id}/Order")]
         public async Task<IActionResult> GetShopOrders(string id) 
         {
-
             var sfilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(id));
             var orders = OrderLists.Find(sfilter).First();
             return Ok(orders);
@@ -324,7 +307,6 @@ namespace MasterFood.Controllers
             var shopOrderList = OrderListsExists ? OrderLists.Find(ofilter).First() : null ;
             if (shopOrderList == null)
             {
-  
                 OrderList ol = new OrderList();
                 ol.ID = shopID;
                 ol.Active = new List<Order>();
@@ -342,17 +324,16 @@ namespace MasterFood.Controllers
         }
 
         [HttpPut]
-        [Route("Shop/{ShopID}/Order/{OrderID}/Complete")] //TODO: not tested, postman uopste ne gadja ovu metodu
+        [Route("Shop/{ShopID}/Order/{OrderID}/Complete")]
         public async Task<IActionResult> CompleteOrder(string ShopID, string OrderID)
         {
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
-            if (!OrderListsExists) return Ok("There are no orders");
+            if (!OrderListsExists) return BadRequest("Order not found");
 
             var ofilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(ShopID));
             var orderlist = OrderLists.Find(ofilter).First();
 
-            Order myOrder;
-            myOrder = orderlist.Active.First(o => o.ID == OrderID);
+            Order myOrder = orderlist.Active.First(o => o.ID == OrderID);
             if (myOrder != null)
             {
                 if (orderlist.History == null) 
@@ -365,9 +346,25 @@ namespace MasterFood.Controllers
             return Ok();
         }
 
-        //[HttpDelete]
-        //[Route("Shop/{id}/Order/OrderID")]
-        //public async Task<IActionResult> AbortOrder() { return Ok(); }
+        [HttpDelete]
+        [Route("Shop/{ShopID}/Order/{OrderID}/Abort")]
+        public async Task<IActionResult> AbortOrder(string ShopID, string OrderID)
+        {
+            bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
+            if (!OrderListsExists) return BadRequest("Order not found");
+
+            var ofilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(ShopID));
+            var orderlist = OrderLists.Find(ofilter).First();
+
+            Order myOrder = orderlist.Active.First(o => o.ID == OrderID);
+            if (myOrder != null)
+            {
+                orderlist.Active.Remove(myOrder);
+            }
+
+            OrderLists.ReplaceOne(ofilter, orderlist);
+            return Ok();
+        }
 
 
         #endregion

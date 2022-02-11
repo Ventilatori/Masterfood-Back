@@ -340,6 +340,7 @@ namespace MasterFood.Controllers
             
             var ofilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(shopID));
             newOrder.ID = ObjectId.GenerateNewId().ToString();
+            newOrder.OrderTime = DateTime.Now;
 
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
 
@@ -375,6 +376,7 @@ namespace MasterFood.Controllers
             Order myOrder = orderlist.Active.FirstOrDefault(o => o.ID == OrderID);
             if (myOrder != null)
             {
+                myOrder.CompletitionTime = DateTime.Now;
                 if (orderlist.History == null) 
                     orderlist.History = new List<Order>();
                 orderlist.History.Add(myOrder);
@@ -449,7 +451,15 @@ namespace MasterFood.Controllers
             return Ok(tags);
         }
 
-
+        //[HttpGet]
+        //[Route("/Shop/ResponseTimes")]
+        //public async Task<IActionResult> GetAllShopTags()
+        //{
+        //    var respTimes = OrderLists.Aggregate()
+        //        .Project(o => o.History)
+        //        .ForEachAsync(o => o.)
+             
+        //}
         #endregion
 
 

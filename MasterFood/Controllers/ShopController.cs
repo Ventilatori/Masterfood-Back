@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace MasterFood.Controllers
 {
@@ -181,6 +182,34 @@ namespace MasterFood.Controllers
         {
             return Ok();
         }
+
+        [HttpPost]
+        [Route("Shop/Search")]
+        public async Task<IActionResult> SearchShops([FromBody] SearchRequest search)
+        {
+            var filter = Builders<Shop>.Filter.Empty;
+            // Name search
+            if(!string.IsNullOrEmpty(search.Name))
+            {
+                var regex = new Regex(search.Name, RegexOptions.IgnoreCase);
+                var queryExpr = new BsonRegularExpression(regex); 
+                var filterName = Builders<Shop>.Filter.Regex("Name", queryExpr);
+                filter &= filterName;
+            }
+
+            // Tag search
+            if(search.Tags != null && search.Tags.Count != 0)
+            {
+                var tagStr = String.Join(" ", search.Tags);
+                var keys = Builders<Shop>.IndexKeys.Text("Tags");
+                this.Shops.Indexes.CreateOne(keys);
+                var filterTags = Builders<Shop>.Filter.Text(tagStr);
+                filter &= filterTags;
+            }
+
+            return Ok(this.Shops.Find(filter).ToList());
+        }
+
         #region shop item methods
 
         [HttpPost]

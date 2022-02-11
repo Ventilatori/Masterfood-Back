@@ -217,6 +217,29 @@ namespace MasterFood.Controllers
             return Ok(this.Shops.Find(filter).ToList());
         }
 
+        [HttpGet]
+        [Route("Shop/{ShopID}/Statistics")]
+        public async Task<IActionResult> GetStatistics(string ShopID)
+        {
+            // TODO: Auth
+
+            var OrdersByHour = this.OrderLists.AsQueryable()
+                .Where(ol => ol.ID == ShopID)
+                .SelectMany(ol => ol.History, (ol, o) => new
+                {
+                    Orders = o
+                })
+                .GroupBy(ol => ol.Orders.Hour)
+                .Select(ol => new
+                {
+                    Hour = ol.Key,
+                    Orders = ol.Select(o => o.Orders).Count()
+                })
+                .ToList();
+
+            return Ok(OrdersByHour);
+        }
+
         #region shop item methods
 
         [HttpPost]
@@ -345,11 +368,15 @@ namespace MasterFood.Controllers
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
 
             var shopOrderList = OrderListsExists ? OrderLists.Find(ofilter).FirstOrDefault() : null ;
+
+            newOrder.Hour = Int32.Parse(DateTime.Now.ToString("HH"));
+
             if (shopOrderList == null)
             {
                 OrderList ol = new OrderList();
                 ol.ID = shopID;
                 ol.Active = new List<Order>();
+                ol.History = new List<Order>();
 
                 ol.Active.Add(newOrder);
                 OrderLists.InsertOne(ol);

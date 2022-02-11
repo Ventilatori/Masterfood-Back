@@ -237,7 +237,7 @@ namespace MasterFood.Service
             //ili umesto 1. Filter.And(), ugnezdene u njemu mozes da vezes sa & (ne &&)
             FilterDefinition<Shop> filter = Builders<Shop>.Filter.And(
                     Builders<Shop>.Filter.Eq(s => s.ID, id),
-                    Builders<Shop>.Filter.ElemMatch(x => x.Items, Builders<Item>.Filter.Eq(i => i.Name, item.Name))
+                    Builders<Shop>.Filter.ElemMatch(x => x.Items, Builders<Item>.Filter.Eq(i => i.ID, item.ID))
                 );
             //filter selektuje svaki Shop koji se poklapa sa id-jem, i koji u svojoj listi x.Items sadrzi bilo koji element koji:
                 //(desna strana posle zareza u ElemMatch)

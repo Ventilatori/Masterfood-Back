@@ -262,17 +262,9 @@ namespace MasterFood.Controllers
                         this.Service.DeleteImage(shop.Items[index].Picture, IUserService.ImageType.Item);
                         shop.Items[index].Picture = this.Service.AddImage(newItem.Picture, IUserService.ImageType.Item);
                     }
-                    List<string> tagList = new List<string>();
                     if (newItem.Tags != null)
                     {
-
-                        string[] tagArray = newItem.Tags.Split(',');
-                        tagList = tagArray.ToList<string>();
-
-                    }
-                    if (newItem.Tags != null)
-                    {
-                       // shop.Items[index].Tags = newItem.Tags;
+                        shop.Items[index].Tags = newItem.Tags.Split(',').ToList<string>();
                     }
                     this.Service.UpdateItem(shop.ID, shop.Items[index]);
                     return Ok();

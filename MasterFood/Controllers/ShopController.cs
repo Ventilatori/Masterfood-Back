@@ -526,8 +526,8 @@ namespace MasterFood.Controllers
         [Route("/Shop/Near")]
         public async Task<IActionResult> GetNearShops([FromBody] LocationCoord coordinates)
         {
-
-
+            var index = Builders<Shop>.IndexKeys.Geo2DSphere("Location");
+            Shops.Indexes.CreateOne(index);
 
             var builder = Builders<Shop>.Filter;
             var point = new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(coordinates.Longitude, coordinates.Latitude));

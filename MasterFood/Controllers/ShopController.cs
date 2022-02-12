@@ -127,8 +127,9 @@ namespace MasterFood.Controllers
                 Password = password,
                 Salt = salt,
                 Online = false,
-                Shop = null
-            };
+                Shop = null,
+               
+    };
             this.Service.CreateUser(user);
 
             //create shop
@@ -161,10 +162,10 @@ namespace MasterFood.Controllers
                 Tags = tagList,
                 OrderCount = 0,
                 Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
-                Items = null,    
-   
-                //Location = new GeoJsonPoint(GeoJson.Position(data.LocationCoordinates.Longtitude, data.LocationCoordinates.Longtitude))
-            };
+                Items = null,
+                Location = new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(data.Longitude, data.Latitude))
+            //Location = new GeoJsonPoint(GeoJson.Position(data.LocationCoordinates.Longtitude, data.LocationCoordinates.Longtitude))
+        };
 
             //store shop
             var userFilter = Builders<User>.Filter.Eq("ID", userr.ID);
@@ -359,7 +360,11 @@ namespace MasterFood.Controllers
             var sfilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(id));
             var orders = OrderLists.Find(sfilter).FirstOrDefault();
             if(orders == null)
-                return Ok(new OrderList());
+                return Ok(new OrderList { 
+                    ID=id,
+                    Active = new List<Order>(),
+                    History = new List<Order>()
+                });
             else
                 return Ok(orders);
         }
@@ -489,22 +494,20 @@ namespace MasterFood.Controllers
             return Ok(tags);
         }
 
-        //[HttpGet]
-        //[Route("/Shop/Near")]
-        //public async Task<IActionResult> GetNearShops([FromBody] LocationCoord coordinates)
-        //{
+        [HttpGet]
+        [Route("/Shop/Near")]
+        public async Task<IActionResult> GetNearShops([FromBody] LocationCoord coordinates)
+        {
 
-          
 
-        //    var builder = Builders<Shop>.Filter;
-        //    var point = GeoJson.Point(GeoJson.Position(coordinates.Longtitude, coordinates.Longtitude));
-        //    var filter = builder.Near(x => x.Location, point, maxDistance: 10000, minDistance: 1);
 
-        //    // Log filter we've built to the console using our helper method
+            var builder = Builders<Shop>.Filter;
+            var point = new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(coordinates.Longitude, coordinates.Latitude));
+            var filter = builder.Near(x => x.Location, point, maxDistance: 1500, minDistance: 1);
 
-        //    var nearShops = Shops.Find(filter).ToList();
-        //    return Ok(nearShops);
-        //}
+            var nearshops = Shops.Find(filter).ToList();
+            return Ok(nearshops);
+        }
         #endregion
 
 

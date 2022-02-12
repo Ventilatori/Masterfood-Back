@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using MongoDB.Driver.GeoJsonObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace MasterFood.RequestResponse
         public string UserName { get; set; }
         public string Password { get; set; }
 
-        public LocationCoord LocationCoordinates { get; set; }
+        public double Longitude { get; set; }
+        public double Latitude { get; set; }
+        //public LocationCoord LocationCoordinates { get; set; }
     }
 }

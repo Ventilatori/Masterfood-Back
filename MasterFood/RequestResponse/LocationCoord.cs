@@ -8,7 +8,7 @@ namespace MasterFood.RequestResponse
 {
     public class LocationCoord
     {
-        public double Longtitude { get; set; }
+        public double Longitude { get; set; }
         public double Latitude { get; set; }
     }
 }

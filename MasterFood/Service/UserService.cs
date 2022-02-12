@@ -324,8 +324,6 @@ namespace MasterFood.Service
 
             User user = this.GetUser(null, username);
             if (user == null) return false;
-            if (user.Shop == null) return false;
-            var vrsta = user.Shop.Id.GetType();
             Shop shop = this.GetShop(user.Shop.Id.AsString);
             bool hasAcess = (user.UserType == IUserService.AccountType.Admin) || (shop != null);
             return hasAcess;

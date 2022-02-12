@@ -83,7 +83,7 @@ namespace MasterFood.Controllers
         {
             string username = (string)HttpContext.Items["UserName"];
             if (!this.Service.IsOwner(username, id)) return BadRequest(new { message = "User does not own shop." });
-            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+ 
 
             Shop shop = this.Service.GetShop(id);
             if (changes.Name != null)
@@ -186,7 +186,7 @@ namespace MasterFood.Controllers
         {
             string username = (string)HttpContext.Items["UserName"];
             if (!this.Service.IsOwner(username, id)) return BadRequest(new { message = "User does not own shop." });
-            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+
 
             var filterS = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
             var shop =  Shops.Find(filterS).First();
@@ -268,7 +268,7 @@ namespace MasterFood.Controllers
         {
             string username = (string)HttpContext.Items["UserName"];
             if (!this.Service.IsOwner(username, id)) return BadRequest(new { message = "User does not own shop." });
-            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+   
 
             string img_path = this.Service.AddImage(newItem.Picture);
 
@@ -307,7 +307,7 @@ namespace MasterFood.Controllers
         {
             string username = (string)HttpContext.Items["UserName"];
             if (!this.Service.IsOwner(username, shopid)) return BadRequest(new { message = "User does not own shop." });
-            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+         
 
             Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
             if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
@@ -349,7 +349,7 @@ namespace MasterFood.Controllers
         {
             string username = (string)HttpContext.Items["UserName"];
             if (!this.Service.IsOwner(username, shopid)) return BadRequest(new { message = "User does not own shop." });
-            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+ 
 
             Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
             if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
@@ -375,7 +375,7 @@ namespace MasterFood.Controllers
         {
             string username = (string)HttpContext.Items["UserName"];
             if (!this.Service.IsOwner(username, id)) return BadRequest(new { message = "User does not own shop." });
-            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+         
 
             var sfilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(id));
             var orders = OrderLists.Find(sfilter).FirstOrDefault();
@@ -432,7 +432,7 @@ namespace MasterFood.Controllers
         {
             string username = (string)HttpContext.Items["UserName"];
             if (!this.Service.IsOwner(username, ShopID)) return BadRequest(new { message = "User does not own shop." });
-            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+      
 
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
             if (!OrderListsExists) return BadRequest("Order not found");
@@ -460,7 +460,7 @@ namespace MasterFood.Controllers
         {
             string username = (string)HttpContext.Items["UserName"];
             if (!this.Service.IsOwner(username, ShopID)) return BadRequest(new { message = "User does not own shop." });
-            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+   
 
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
             if (!OrderListsExists) return BadRequest("Order not found");

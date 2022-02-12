@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using MongoDB.Driver.GeoJsonObjectModel;
 
 namespace MasterFood.Controllers
 {
@@ -147,6 +148,7 @@ namespace MasterFood.Controllers
                 img_path = "default.png";
             }
 
+            
             List<string> tagList = new List<string>(); 
             if (data.Tags != null)
                 tagList = data.Tags.Split(',').ToList<string>();
@@ -159,7 +161,9 @@ namespace MasterFood.Controllers
                 Tags = tagList,
                 OrderCount = 0,
                 Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
-                Items = null,
+                Items = null,    
+   
+                Location = new GeoJson.Point(GeoJson.Position(data.LocationCoordinates.Longtitude, data.LocationCoordinates.Longtitude))
             };
 
             //store shop
@@ -237,7 +241,14 @@ namespace MasterFood.Controllers
                 })
                 .ToList();
 
-            return Ok(OrdersByHour);
+            var ResponseTime = this.OrderLists.AsQueryable()
+                .Where(o => o.ID == ShopID)
+                .Select(o => o.History.Average(ord => ord.CompletitionTime - ord.OrderTime )
+                )
+                .FirstOrDefault();
+            
+
+            return Ok(new { OrdersByHour, ResponseTime });
         }
 
         #region shop item methods
@@ -363,7 +374,7 @@ namespace MasterFood.Controllers
             
             var ofilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(shopID));
             newOrder.ID = ObjectId.GenerateNewId().ToString();
-            newOrder.OrderTime = DateTime.Now;
+            newOrder.OrderTime = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds();
 
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
 
@@ -403,7 +414,7 @@ namespace MasterFood.Controllers
             Order myOrder = orderlist.Active.FirstOrDefault(o => o.ID == OrderID);
             if (myOrder != null)
             {
-                myOrder.CompletitionTime = DateTime.Now;
+                myOrder.CompletitionTime = ((DateTimeOffset)DateTime.Now).ToUnixTimeSeconds();
                 if (orderlist.History == null) 
                     orderlist.History = new List<Order>();
                 orderlist.History.Add(myOrder);
@@ -478,15 +489,22 @@ namespace MasterFood.Controllers
             return Ok(tags);
         }
 
-        //[HttpGet]
-        //[Route("/Shop/ResponseTimes")]
-        //public async Task<IActionResult> GetAllShopTags()
-        //{
-        //    var respTimes = OrderLists.Aggregate()
-        //        .Project(o => o.History)
-        //        .ForEachAsync(o => o.)
-             
-        //}
+        [HttpGet]
+        [Route("/Shop/Near")]
+        public async Task<IActionResult> GetNearShops([FromBody] LocationCoord coordinates)
+        {
+
+          
+
+            var builder = Builders<Shop>.Filter;
+            var point = GeoJson.Point(GeoJson.Position(coordinates.Longtitude, coordinates.Longtitude));
+            var filter = builder.Near(x => x.Location, point, maxDistance: 10000, minDistance: 1);
+
+            // Log filter we've built to the console using our helper method
+
+            var nearShops = Shops.Find(filter).ToList();
+            return Ok(nearShops);
+        }
         #endregion
 
 

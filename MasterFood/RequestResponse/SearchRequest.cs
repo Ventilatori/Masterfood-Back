@@ -9,5 +9,7 @@ namespace MasterFood.RequestResponse
     {
         public string? Name { get; set; }
         public List<string>? Tags { get; set; }
+
+        public LocationCoord LocationCoordinates { get; set; }
     }
 }

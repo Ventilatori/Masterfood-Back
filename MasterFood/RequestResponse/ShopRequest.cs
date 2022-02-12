@@ -12,5 +12,6 @@ namespace MasterFood.RequestResponse
         public string? Description { get; set; }
         public IFormFile? Picture { get; set; }
         public string Tags { get; set; }
+        public LocationCoord LocationCoordinates { get; set; }
     }
 }

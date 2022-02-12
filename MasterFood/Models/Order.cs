@@ -22,11 +22,9 @@ namespace MasterFood.Models
         //public DateTime CompletionTime { get; set; }
         public string Status{ get; set; }
 
-        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
-        public DateTime OrderTime { get; set; }
+        public long OrderTime { get; set; }
 
-        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
-        public DateTime CompletitionTime { get; set; }
+        public long CompletitionTime { get; set; }
 
         public Order()
         {

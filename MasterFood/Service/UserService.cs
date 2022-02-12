@@ -54,6 +54,7 @@ namespace MasterFood.Service
 
         public bool CollectionExists(string name);
         public bool IsOwner(string username, string shopID);
+        public bool IsAdmin(string username);
     }
 
     public class UserService : IUserService
@@ -330,7 +331,7 @@ namespace MasterFood.Service
             return hasAcess;
         }
         
-        public bool IsAdmin(string username, string shopID)
+        public bool IsAdmin(string username)
         {
             if (_appSettings.Auth == false) return true; //if auth is disabled
 

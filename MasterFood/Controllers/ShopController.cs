@@ -83,7 +83,7 @@ namespace MasterFood.Controllers
         {
             string username = (string)HttpContext.Items["UserName"];
             if (!this.Service.IsOwner(username, id)) return BadRequest(new { message = "User does not own shop." });
-
+            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
 
             Shop shop = this.Service.GetShop(id);
             if (changes.Name != null)
@@ -114,6 +114,9 @@ namespace MasterFood.Controllers
         [Route("Shop")]
         public async Task<IActionResult> CreateShop([FromForm] ShopCreateRequest data) 
         {
+            string username = (string)HttpContext.Items["UserName"];
+            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+
             //create owner
             User user = this.Service.GetUser(null, data.UserName);
             if (user != null)
@@ -181,6 +184,10 @@ namespace MasterFood.Controllers
         [Route("Shop/{id}")]
         public async Task<IActionResult> DeleteShop(string id)
         {
+            string username = (string)HttpContext.Items["UserName"];
+            if (!this.Service.IsOwner(username, id)) return BadRequest(new { message = "User does not own shop." });
+            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+
             var filterS = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
             var shop =  Shops.Find(filterS).First();
 
@@ -259,6 +266,10 @@ namespace MasterFood.Controllers
         [Route("Shop/{id}/Item")]
         public async Task<IActionResult> AddItem(string id, [FromForm] ItemRequest newItem)
         {
+            string username = (string)HttpContext.Items["UserName"];
+            if (!this.Service.IsOwner(username, id)) return BadRequest(new { message = "User does not own shop." });
+            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+
             string img_path = this.Service.AddImage(newItem.Picture);
 
             List<string> tagList = new List<string>();
@@ -294,7 +305,9 @@ namespace MasterFood.Controllers
         [Route("Shop/{shopid}/Item/{itemid}")] // TODO: fix method
         public async Task<IActionResult> UpdateItem(string shopid, string itemid, [FromForm] ItemRequest newItem) 
         {
-            //TODO: turn on auth 
+            string username = (string)HttpContext.Items["UserName"];
+            if (!this.Service.IsOwner(username, shopid)) return BadRequest(new { message = "User does not own shop." });
+            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
 
             Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
             if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
@@ -333,8 +346,10 @@ namespace MasterFood.Controllers
         [HttpDelete]
         [Route("Shop/{shopid}/Item/{itemid}")]
         public async Task<IActionResult> DeleteItem(string shopid, string itemid) 
-        { 
-            //TODO: turn on auth 
+        {
+            string username = (string)HttpContext.Items["UserName"];
+            if (!this.Service.IsOwner(username, shopid)) return BadRequest(new { message = "User does not own shop." });
+            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
 
             Shop shop = this.Service.GetShop(shopid /*user.Shop.Id.AsString*/);
             if (shop.Items != null && shop.Items.Any(x => String.Equals(x.ID.ToString(), itemid)))
@@ -358,6 +373,10 @@ namespace MasterFood.Controllers
         [Route("Shop/{id}/Order")]
         public async Task<IActionResult> GetShopOrders(string id) 
         {
+            string username = (string)HttpContext.Items["UserName"];
+            if (!this.Service.IsOwner(username, id)) return BadRequest(new { message = "User does not own shop." });
+            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+
             var sfilter = Builders<OrderList>.Filter.Eq("ID", ObjectId.Parse(id));
             var orders = OrderLists.Find(sfilter).FirstOrDefault();
             if(orders == null)
@@ -411,6 +430,10 @@ namespace MasterFood.Controllers
         [Route("Shop/{ShopID}/Order/{OrderID}/Complete")]
         public async Task<IActionResult> CompleteOrder(string ShopID, string OrderID)
         {
+            string username = (string)HttpContext.Items["UserName"];
+            if (!this.Service.IsOwner(username, ShopID)) return BadRequest(new { message = "User does not own shop." });
+            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
             if (!OrderListsExists) return BadRequest("Order not found");
 
@@ -435,6 +458,10 @@ namespace MasterFood.Controllers
         [Route("Shop/{ShopID}/Order/{OrderID}/Abort")]
         public async Task<IActionResult> AbortOrder(string ShopID, string OrderID)
         {
+            string username = (string)HttpContext.Items["UserName"];
+            if (!this.Service.IsOwner(username, ShopID)) return BadRequest(new { message = "User does not own shop." });
+            if (!this.Service.IsAdmin(username)) return BadRequest(new { message = "User is not Admin." });
+
             bool OrderListsExists = Service.CollectionExists(dbSettings.Value.OrderCollectionName);
             if (!OrderListsExists) return BadRequest("Order not found");
 
@@ -495,7 +522,7 @@ namespace MasterFood.Controllers
             return Ok(tags);
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("/Shop/Near")]
         public async Task<IActionResult> GetNearShops([FromBody] LocationCoord coordinates)
         {

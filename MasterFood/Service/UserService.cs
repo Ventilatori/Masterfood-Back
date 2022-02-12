@@ -53,7 +53,7 @@ namespace MasterFood.Service
         void LogUser(string id, bool status);
 
         public bool CollectionExists(string name);
-
+        public bool IsOwner(string username, string shopID);
     }
 
     public class UserService : IUserService
@@ -316,5 +316,29 @@ namespace MasterFood.Service
             var options = new ListCollectionNamesOptions { Filter = filterr };
             return database.ListCollectionNames(options).Any();
         }
+
+        public bool IsOwner(string username, string shopID)
+        {
+            if (_appSettings.Auth == false) return true; //if auth is disabled
+
+            User user = this.GetUser(null, username);
+            if (user == null) return false;
+            if (user.Shop == null) return false;
+            var vrsta = user.Shop.Id.GetType();
+            Shop shop = this.GetShop(user.Shop.Id.AsString);
+            bool hasAcess = (user.UserType == IUserService.AccountType.Admin) || (shop != null);
+            return hasAcess;
+        }
+        
+        public bool IsAdmin(string username, string shopID)
+        {
+            if (_appSettings.Auth == false) return true; //if auth is disabled
+
+            User user = this.GetUser(null, username);
+            if (user == null) return false;    
+            return (user.UserType == IUserService.AccountType.Admin);
+        }
+
+      
     }
 }

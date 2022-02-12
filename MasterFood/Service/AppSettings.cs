@@ -10,5 +10,6 @@ namespace MasterFood.Service
         public string Secret { get; set; }
         public string AdminUserName { get; set; }
         public string AdminPassword { get; set; }
+        public bool Auth { get; set; }
     }
 }

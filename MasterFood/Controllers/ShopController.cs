@@ -82,15 +82,8 @@ namespace MasterFood.Controllers
         public async Task<IActionResult> UpdateShop(string id, [FromForm] ShopRequest changes)  // TODO fix fromform
         {
             string username = (string)HttpContext.Items["UserName"];
-            User user = this.Service.GetUser(null, username);
-            if (user !=null && user.Shop != null)
-            {
-                return Ok(user.Shop);
-            }
-            else
-            {
-                return BadRequest(new { message = "Korisnik nema svoju prodavnicu. Napravite je." });
-            }
+            if (!this.Service.IsOwner(username, id)) return BadRequest(new { message = "User does not own shop." });
+
 
             Shop shop = this.Service.GetShop(id);
             if (changes.Name != null)

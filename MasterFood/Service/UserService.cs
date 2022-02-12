@@ -321,12 +321,13 @@ namespace MasterFood.Service
         public bool IsOwner(string username, string shopID)
         {
             if (_appSettings.Auth == false) return true; //if auth is disabled
-
+            
             User user = this.GetUser(null, username);
             if (user == null) return false;
+            if (user.UserType == IUserService.AccountType.Admin) return true;
+
             Shop shop = this.GetShop(user.Shop.Id.AsString);
-            bool hasAcess = (user.UserType == IUserService.AccountType.Admin) || (shop != null);
-            return hasAcess;
+            return shop.ID == shopID;
         }
         
         public bool IsAdmin(string username)

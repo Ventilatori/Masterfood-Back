@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using MongoDB.Driver.GeoJsonObjectModel;
+using MasterFood.Authentication;
 
 namespace MasterFood.Controllers
 {
@@ -75,13 +76,21 @@ namespace MasterFood.Controllers
             return Ok(shop);
         }
 
+        //[Auth]
         [HttpPut]
         [Route("Shop/{id}")]
         public async Task<IActionResult> UpdateShop(string id, [FromForm] ShopRequest changes)  // TODO fix fromform
         {
-            //var filter = Builders<Shop>.Filter.Eq("ID", ObjectId.Parse(id));
-            //var shop = Shops.Find(filter).First();
-            //await Shops.ReplaceOneAsync(filter, updatedS);
+            string username = (string)HttpContext.Items["UserName"];
+            User user = this.Service.GetUser(null, username);
+            if (user !=null && user.Shop != null)
+            {
+                return Ok(user.Shop);
+            }
+            else
+            {
+                return BadRequest(new { message = "Korisnik nema svoju prodavnicu. Napravite je." });
+            }
 
             Shop shop = this.Service.GetShop(id);
             if (changes.Name != null)
@@ -160,7 +169,6 @@ namespace MasterFood.Controllers
                 Description = data.Description,
                 Picture = img_path,
                 Tags = tagList,
-                OrderCount = 0,
                 Owner = new MongoDBRef("User", BsonValue.Create(user.ID)),
                 Items = null,
                 Location = new GeoJsonPoint<GeoJson2DCoordinates>(new GeoJson2DCoordinates(data.Longitude, data.Latitude))

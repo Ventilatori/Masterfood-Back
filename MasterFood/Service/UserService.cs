@@ -43,7 +43,6 @@ namespace MasterFood.Service
         void CreatePassword(out byte[] password, out byte[] salt, string password_string);
         User FindUser(string id);
         List<Shop> GetAllShops(int page_num, int page_size);
-        List<Shop> PopularShops(int page_size);
         Shop GetShop(string id);
         void UpdateShop(Shop shop);
         void UpdateItem(string id, Item item);
@@ -192,12 +191,7 @@ namespace MasterFood.Service
             return this.Shops.Find(filter).Skip((page_num-1)*page_size).Limit(page_size).ToList();
         }
 
-        public List<Shop> PopularShops(int page_size = 5)
-        {
-            FilterDefinition<Shop> filter = Builders<Shop>.Filter.Empty;
-            //SortDefinition<Order> sort = Builders<Order>.Sort.Descending("orderCount");
-            return this.Shops.Find(filter).SortByDescending(p => p.OrderCount).Limit(page_size).ToList();
-        }
+     
 
         public Shop GetShop(string id)
         {

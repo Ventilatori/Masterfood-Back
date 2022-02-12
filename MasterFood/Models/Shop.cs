@@ -26,8 +26,7 @@ namespace MasterFood.Models
         public MongoDBRef Owner { get; set; }
         public List<Item> Items { get; set; }
 
-        public GeoJsonPoint<GeoJson2DCoordinates> Location { get; set; }
-        //[JsonIgnore]
-        //public List<MongoDBRef> Orders { get; set; }
+        //public GeoJsonPoint<GeoJson2DCoordinates> Location { get; set; }
+
     }
 }

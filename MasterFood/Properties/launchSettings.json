@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "MasterFood": {
+    "Shop2Go": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",

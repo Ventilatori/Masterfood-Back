@@ -1,4 +1,4 @@
-﻿using MasterFood.RequestResponse;
+﻿using Shop2Go.RequestResponse;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace MasterFood.Models
+namespace Shop2Go.Models
 {
     public class Shop
     {

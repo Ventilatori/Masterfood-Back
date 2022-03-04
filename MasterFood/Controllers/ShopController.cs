@@ -1,6 +1,6 @@
-﻿using MasterFood.Models;
-using MasterFood.RequestResponse;
-using MasterFood.Service;
+﻿using Shop2Go.Models;
+using Shop2Go.RequestResponse;
+using Shop2Go.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -11,9 +11,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using MongoDB.Driver.GeoJsonObjectModel;
-using MasterFood.Authentication;
+using Shop2Go.Authentication;
 
-namespace MasterFood.Controllers
+namespace Shop2Go.Controllers
 {
     public class ShopController : Controller
     {

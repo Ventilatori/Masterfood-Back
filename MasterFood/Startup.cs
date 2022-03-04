@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MasterFood.Authentication;
-using MasterFood.Service;
+using Shop2Go.Authentication;
+using Shop2Go.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
-namespace MasterFood
+namespace Shop2Go
 {
     public class Startup
     {
@@ -43,7 +43,7 @@ namespace MasterFood
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "MasterFood", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shop2Go", Version = "v1" });
             });
         }
 
@@ -54,7 +54,7 @@ namespace MasterFood
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MasterFood v1"));
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shop2Go v1"));
             }
 
             //app.UseHttpsRedirection();

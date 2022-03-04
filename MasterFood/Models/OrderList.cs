@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MasterFood.Models
+namespace Shop2Go.Models
 {
     public class OrderList
     {

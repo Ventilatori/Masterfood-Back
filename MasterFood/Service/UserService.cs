@@ -7,14 +7,14 @@ using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using MasterFood.Models;
+using Shop2Go.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Collections.Generic;
 using MongoDB.Bson;
 using System.Security.Cryptography;
 
-namespace MasterFood.Service
+namespace Shop2Go.Service
 {
     public interface IUserService
     {

@@ -1,10 +1,10 @@
-﻿using MasterFood.Service;
+﻿using Shop2Go.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MasterFood.RequestResponse
+namespace Shop2Go.RequestResponse
 {
     public class LogInResponse
     {

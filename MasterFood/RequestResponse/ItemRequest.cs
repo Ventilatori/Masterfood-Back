@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MasterFood.RequestResponse
+namespace Shop2Go.RequestResponse
 {
     public class ItemRequest
     {

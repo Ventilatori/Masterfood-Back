@@ -1,10 +1,10 @@
-using MasterFood.Service;
+using Shop2Go.Service;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MasterFood.Authentication
+namespace Shop2Go.Authentication
 {
     public class JWTMiddleware
     {

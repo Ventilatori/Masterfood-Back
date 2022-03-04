@@ -1,14 +1,14 @@
-﻿using MasterFood.Authentication;
-using MasterFood.Models;
-using MasterFood.RequestResponse;
-using MasterFood.Service;
+﻿using Shop2Go.Authentication;
+using Shop2Go.Models;
+using Shop2Go.RequestResponse;
+using Shop2Go.Service;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MasterFood.Controllers
+namespace Shop2Go.Controllers
 {
     [ApiController]
     [Route("[controller]")]

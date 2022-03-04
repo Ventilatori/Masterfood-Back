@@ -1,5 +1,5 @@
-using MasterFood.Models;
-using MasterFood.Service;
+using Shop2Go.Models;
+using Shop2Go.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MasterFood.Authentication
+namespace Shop2Go.Authentication
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class AuthAttribute : Attribute, IAuthorizationFilter

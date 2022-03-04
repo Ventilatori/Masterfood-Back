@@ -1,4 +1,4 @@
-﻿using MasterFood.Service;
+﻿using Shop2Go.Service;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MasterFood.Models
+namespace Shop2Go.Models
 {
     public class User 
     {
